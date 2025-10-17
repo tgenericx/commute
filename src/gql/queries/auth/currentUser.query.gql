@@ -1,0 +1,6 @@
+query CurrentUser {
+  profile {
+    id
+    roles
+  }
+}
