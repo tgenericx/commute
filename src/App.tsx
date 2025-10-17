@@ -1,35 +1,110 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import Index from "./pages/Index";
+// import Events from "./pages/Events";
+// import Marketplace from "./pages/Marketplace";
+// import Boards from "./pages/Boards";
+// import BoardDetail from "./pages/BoardDetail";
+// import Profile from "./pages/Profile";
+// import VendorProfile from "./pages/VendorProfile";
+// import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import Landing from "./pages/Landing";
+// import VerifyEmail from "./pages/VerifyEmail";
+import NotFound from "./pages/NotFound";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { RequireAuth } from "./components/RequireAuth";
 
-function App() {
-  const [count, setCount] = useState(0)
+
+
+const AppRoutes = () => {
+  const { isLoadingUser } = useAuth();
+
+  if (isLoadingUser) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <span className="text-muted-foreground">Checking authentication...</span>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
-}
+    <Routes>
+      {/* Public routes */}
+      <Route path="/landing" element={<Landing />} />
+      {/* <Route path="/signup" element={<Signup />} /> */}
+      <Route path="/login" element={<Login />} />
+      {/* <Route path="/auth/verify-email" element={<VerifyEmail />} /> */}
 
-export default App
+      Protected routes
+      <Route
+        path="/"
+        element={
+          <RequireAuth>
+            <Index />
+          </RequireAuth>
+        }
+      />
+      {/* <Route */}
+      {/*   path="/events" */}
+      {/*   element={ */}
+      {/*     <RequireAuth> */}
+      {/*       <Events /> */}
+      {/*     </RequireAuth> */}
+      {/*   } */}
+      {/* /> */}
+      {/* <Route */}
+      {/*   path="/marketplace" */}
+      {/*   element={ */}
+      {/*     <RequireAuth> */}
+      {/*       <Marketplace /> */}
+      {/*     </RequireAuth> */}
+      {/*   } */}
+      {/* /> */}
+      {/* <Route */}
+      {/*   path="/boards" */}
+      {/*   element={ */}
+      {/*     <RequireAuth> */}
+      {/*       <Boards /> */}
+      {/*     </RequireAuth> */}
+      {/*   } */}
+      {/* /> */}
+      {/* <Route */}
+      {/*   path="/boards/:id" */}
+      {/*   element={ */}
+      {/*     <RequireAuth> */}
+      {/*       <BoardDetail /> */}
+      {/*     </RequireAuth> */}
+      {/*   } */}
+      {/* /> */}
+      {/* <Route */}
+      {/*   path="/profile/:id" */}
+      {/*   element={ */}
+      {/*     <RequireAuth> */}
+      {/*       <Profile /> */}
+      {/*     </RequireAuth> */}
+      {/*   } */}
+      {/* /> */}
+      {/* <Route */}
+      {/*   path="/vendor/:id" */}
+      {/*   element={ */}
+      {/*     <RequireAuth> */}
+      {/*       <VendorProfile /> */}
+      {/*     </RequireAuth> */}
+      {/*   } */}
+      {/* /> */}
+
+      {/* Catch-all */}
+      <Route path="*" element={<NotFound />} />
+    </Routes>
+  );
+};
+
+const App = () => (
+  <BrowserRouter>
+    <AuthProvider>
+      <AppRoutes />
+    </AuthProvider>
+  </BrowserRouter>
+);
+
+export default App;
