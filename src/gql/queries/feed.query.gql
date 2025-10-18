@@ -1,0 +1,86 @@
+query FeedPosts($after: String, $limit: Int) {
+  feedPosts(after: $after, limit: $limit) {
+    items {
+      id
+      textContent
+      createdAt
+      author {
+        id
+        username
+        avatar
+      }
+      postMedia {
+        media {
+          id
+          secureUrl
+          resourceType
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+
+query UpcomingEvents($take: Int) {
+  events(take: $take) {
+    id
+    title
+    description
+    startTime
+    endTime
+    location
+    media {
+      id
+      secureUrl
+      resourceType
+    }
+  }
+}
+
+query MarketplaceListings($take: Int) {
+  listings(take: $take) {
+    id
+    title
+    description
+    status
+    price
+    user {
+      id
+      username
+    }
+    listingMedia {
+      media {
+        id
+        secureUrl
+        resourceType
+      }
+    }
+  }
+}
+
+query MarketplaceInventories($take: Int) {
+  inventories(take: $take) {
+    id
+    title
+    description
+    stock
+    price
+    business {
+      id
+      user {
+        id
+        username
+      }
+    }
+    inventoryMedia {
+      media {
+        id
+        secureUrl
+        resourceType
+      }
+    }
+  }
+}
