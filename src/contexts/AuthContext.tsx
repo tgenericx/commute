@@ -1,12 +1,20 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from 'react';
 import { useNavigate } from 'react-router-dom';
 import { apolloClient } from '../lib/apolloClient';
+import { useLazyQuery } from '@apollo/client/react';
+import { CurrentUserDocument, type CurrentUserQuery } from '../graphql/graphql';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoadingUser: boolean;
   user: any | null;
-  logout: () => void;
+  logout: (alert?: boolean) => void;
   handleAuthError: (error: any) => void;
 }
 
@@ -18,6 +26,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any | null>(null);
   const navigate = useNavigate();
 
+  const [fetchUser] = useLazyQuery<CurrentUserQuery>(CurrentUserDocument);
+
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
     if (!token) {
@@ -25,7 +35,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // fetch current  user with apolloClient
+    fetchUser()
+      .then((res) => {
+        if (res.data?.profile) {
+          setUser(res.data.profile);
+          setIsAuthenticated(true);
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to fetch user:', err);
+        handleAuthError(err);
+      })
+      .finally(() => setIsLoadingUser(false));
   }, []);
 
   const logout = (alert: boolean = true) => {
@@ -40,7 +61,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const handleAuthError = (error: any) => {
     console.error('🔒 Auth Error:', error);
-    const msg = error?.message || error?.graphQLErrors?.[0]?.message || 'An error occurred';
+    const msg =
+      error?.message ||
+      error?.graphQLErrors?.[0]?.message ||
+      'An error occurred';
 
     if (
       msg.includes('Unauthorized') ||
@@ -58,11 +82,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    window.alert(msg)
+    window.alert(msg);
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, isLoadingUser, user, logout, handleAuthError }}>
+    <AuthContext.Provider
+      value={{ isAuthenticated, isLoadingUser, user, logout, handleAuthError }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -70,6 +96,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (!context) throw new Error('useAuth must be used within AuthProvider');
+  if (!context)
+    throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
