@@ -28,3 +28,4 @@ dist-ssr
 # 🧬 GraphQL Codegen outputs
 src/**/*.generated.tsx
 src/gql/generated/graphql.ts
+src/graphql
