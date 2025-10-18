@@ -127,10 +127,10 @@ const Index = () => {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fafafa' }}>
+    <div className="min-h-screen bg-gray-100">
       <Navbar />
 
-      <div style={{ maxWidth: 800, margin: '2rem auto', padding: '1rem' }}>
+      <div className="max-w-2xl mx-auto p-4">
         {postsLoading && !posts.length ? (
           Array.from({ length: 3 }).map((_, i) => (
             <div key={i} style={{ background: '#fff', borderRadius: 8, padding: '1rem', marginBottom: '1rem' }}>
