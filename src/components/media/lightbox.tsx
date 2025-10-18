@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, ChevronLeft, ChevronRight } from "lucide-react";
 import { ResourceType } from "@/graphql/graphql";
@@ -19,23 +19,42 @@ const MediaLightbox: React.FC<MediaLightboxProps> = ({
 }) => {
   const [index, setIndex] = useState(startIndex);
 
-  useEffect(() => {
-    if (isOpen) setIndex(startIndex);
-  }, [isOpen, startIndex]);
+  const handleNext = useCallback(() => {
+    setIndex((prev) => (prev + 1) % mediaList.length);
+  }, [mediaList.length]);
 
-  const handleNext = () => setIndex((prev) => (prev + 1) % mediaList.length);
-  const handlePrev = () =>
+  const handlePrev = useCallback(() => {
     setIndex((prev) => (prev - 1 + mediaList.length) % mediaList.length);
+  }, [mediaList.length]);
+
+  const handlersRef = useRef({
+    isOpen,
+    onClose,
+    handleNext,
+    handlePrev,
+  });
+
+  useEffect(() => {
+    handlersRef.current = { isOpen, onClose, handleNext, handlePrev };
+  }, [isOpen, onClose, handleNext, handlePrev]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
+      const { isOpen, onClose, handleNext, handlePrev } = handlersRef.current;
+      if (!isOpen) return;
+
       if (e.key === "Escape") onClose();
       if (e.key === "ArrowRight") handleNext();
       if (e.key === "ArrowLeft") handlePrev();
     };
+
     window.addEventListener("keydown", handleKey);
     return () => window.removeEventListener("keydown", handleKey);
-  }, [onClose]);
+  }, []);
+
+  useEffect(() => {
+    if (isOpen) setIndex(startIndex);
+  }, [isOpen, startIndex]);
 
   const current = mediaList[index];
   if (!current) return null;
@@ -66,7 +85,11 @@ const MediaLightbox: React.FC<MediaLightboxProps> = ({
               if (info.offset.y > 120) onClose();
             }}
             onClick={(e) => e.stopPropagation()}
-            style={{ height: "70vh" }}
+            style={{
+              height: "auto",
+              maxHeight: "100vh",
+              paddingBottom: "env(safe-area-inset-bottom)",
+            }}
           >
             {/* Header */}
             <div className="flex items-center justify-between p-3 border-b border-neutral-800 relative">
@@ -81,8 +104,7 @@ const MediaLightbox: React.FC<MediaLightboxProps> = ({
             </div>
 
             {/* Content */}
-            <div className="flex-1 relative flex items-center justify-center p-4">
-              {/* Swipe container */}
+            <div className="flex-1 flex items-center justify-center overflow-hidden p-2 sm:p-4">
               <AnimatePresence initial={false} mode="popLayout">
                 <motion.div
                   key={current.id}
@@ -90,19 +112,19 @@ const MediaLightbox: React.FC<MediaLightboxProps> = ({
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: -100 }}
                   transition={{ duration: 0.3 }}
-                  className="w-full flex justify-center"
+                  className="flex justify-center items-center w-full h-full"
                 >
                   {current.resourceType === ResourceType.Video ? (
                     <video
                       src={current.secureUrl}
                       controls
-                      className="w-full max-h-full rounded-lg object-contain"
+                      className="max-w-full max-h-[calc(100vh-10rem)] md:max-h-[85vh] rounded-lg object-contain"
                     />
                   ) : (
                     <img
                       src={current.secureUrl}
                       alt="media"
-                      className="w-full max-h-full rounded-lg object-contain"
+                      className="max-w-full max-h-[calc(100vh-10rem)] md:max-h-[85vh] rounded-lg object-contain"
                     />
                   )}
                 </motion.div>

@@ -36,7 +36,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, className = "" }) => {
       <MediaLightbox
         isOpen={selectedIndex !== null}
         onClose={() => setSelectedIndex(null)}
-        mediaList={media.map((m) => m)}
+        mediaList={media}
         startIndex={selectedIndex ?? 0}
       />
     </>
