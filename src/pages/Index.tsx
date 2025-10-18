@@ -17,8 +17,6 @@ import {
   type MarketplaceInventoriesQueryVariables,
 } from '../graphql/graphql';
 
-// If these components exist in your project, import them.
-// If not, create placeholders for now.
 import Navbar from '../components/Navbar';
 import PostCard from '../components/PostCard';
 import EventCard from '../components/EventCard';
