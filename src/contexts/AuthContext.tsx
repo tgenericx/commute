@@ -6,15 +6,19 @@ import {
   type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { apolloClient } from '../lib/apolloClient';
 import { useLazyQuery } from '@apollo/client/react';
-import { CurrentUserDocument, type CurrentUserQuery } from '../graphql/graphql';
+import { apolloClient } from '../lib/apolloClient';
+import {
+  CurrentUserDocument,
+  type CurrentUserQuery,
+} from '../graphql/graphql';
+import { toast } from 'sonner';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoadingUser: boolean;
   user: any | null;
-  logout: (alert?: boolean) => void;
+  logout: (showToast?: boolean) => void;
   handleAuthError: (error: any) => void;
 }
 
@@ -29,34 +33,43 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [fetchUser] = useLazyQuery<CurrentUserQuery>(CurrentUserDocument);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (!token) {
-      setIsLoadingUser(false);
-      return;
-    }
+    const loadUser = async () => {
+      const token = localStorage.getItem('accessToken');
+      if (!token) {
+        setIsLoadingUser(false);
+        return;
+      }
 
-    fetchUser()
-      .then((res) => {
+      try {
+        const res = await fetchUser();
         if (res.data?.profile) {
           setUser(res.data.profile);
           setIsAuthenticated(true);
+        } else {
+          throw new Error('No user data found');
         }
-      })
-      .catch((err) => {
+      } catch (err) {
         console.error('Failed to fetch user:', err);
         handleAuthError(err);
-      })
-      .finally(() => setIsLoadingUser(false));
+      } finally {
+        setIsLoadingUser(false);
+      }
+    };
+
+    loadUser();
   }, []);
 
-  const logout = (alert: boolean = true) => {
+  const logout = (showToast: boolean = true) => {
     localStorage.removeItem('accessToken');
     localStorage.removeItem('refreshToken');
     setIsAuthenticated(false);
     setUser(null);
     apolloClient.clearStore();
     navigate('/login');
-    if (alert) window.alert('You have been logged out successfully');
+
+    if (showToast) {
+      toast.success('You have been logged out successfully.');
+    }
   };
 
   const handleAuthError = (error: any) => {
@@ -64,25 +77,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const msg =
       error?.message ||
       error?.graphQLErrors?.[0]?.message ||
-      'An error occurred';
+      'An unexpected error occurred.';
 
     if (
-      msg.includes('Unauthorized') ||
-      msg.includes('unauthenticated') ||
-      msg.includes('invalid token') ||
-      msg.includes('token expired')
+      msg.toLowerCase().includes('unauthorized') ||
+      msg.toLowerCase().includes('unauthenticated') ||
+      msg.toLowerCase().includes('invalid token') ||
+      msg.toLowerCase().includes('token expired')
     ) {
-      window.alert('Please log in again');
+      toast.error('Session expired. Please log in again.');
       logout(false);
       return;
     }
 
-    if (msg.includes('Forbidden') || msg.includes('permission')) {
-      window.alert('You do not have permission to perform this action');
+    if (
+      msg.toLowerCase().includes('forbidden') ||
+      msg.toLowerCase().includes('permission')
+    ) {
+      toast.warning('Access denied. You do not have permission for this action.');
       return;
     }
 
-    window.alert(msg);
+    toast.error(msg);
   };
 
   return (

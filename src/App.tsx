@@ -13,6 +13,7 @@ import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/RequireAuth";
+import { Toaster } from "./components/ui/sonner";
 
 
 
@@ -100,11 +101,14 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-  <BrowserRouter>
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  </BrowserRouter>
+  <>
+    <Toaster />
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRoutes />
+      </AuthProvider>
+    </BrowserRouter>
+  </>
 );
 
 export default App;
