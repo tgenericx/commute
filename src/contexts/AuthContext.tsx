@@ -3,16 +3,11 @@ import {
   useContext,
   useEffect,
   useState,
-  type ReactNode,
   useCallback,
+  type ReactNode,
 } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLazyQuery } from '@apollo/client/react';
 import { apolloClient } from '../lib/apolloClient';
-import {
-  CurrentUserDocument,
-  type CurrentUserQuery,
-} from '../graphql/graphql';
 import { toast } from 'sonner';
 import { jwtDecode } from 'jwt-decode';
 import { refreshAccessToken } from '../lib/authUtils';
@@ -22,12 +17,13 @@ export type VerifiedToken<T = unknown> = {
   exp?: number;
 } & T;
 
-interface AuthContextType {
+interface AuthContextType<TUser = Record<string, any>> {
   isAuthenticated: boolean;
   isLoadingUser: boolean;
-  user: any | null;
+  user: TUser | null;
   logout: (showToast?: boolean) => void;
   handleAuthError: (error: any) => void;
+  tryEnsureAuth: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -35,23 +31,32 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
-  const [user, setUser] = useState<any | null>(null);
+  const [user, setUser] = useState<Record<string, any> | null>(null);
   const navigate = useNavigate();
 
-  const [fetchUser] = useLazyQuery<CurrentUserQuery>(CurrentUserDocument);
-
-  const logout = useCallback((showToast: boolean = true) => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    setIsAuthenticated(false);
-    setUser(null);
-    apolloClient.clearStore();
-    navigate('/login');
-
-    if (showToast) {
-      toast.success('You have been logged out successfully.');
+  const decodeToken = useCallback((token: string): VerifiedToken | null => {
+    try {
+      return jwtDecode<VerifiedToken>(token);
+    } catch {
+      return null;
     }
-  }, [navigate]);
+  }, []);
+
+  const logout = useCallback(
+    (showToast: boolean = true) => {
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      setIsAuthenticated(false);
+      setUser(null);
+      apolloClient.clearStore();
+      navigate('/login');
+
+      if (showToast) {
+        toast.success('You have been logged out successfully.');
+      }
+    },
+    [navigate]
+  );
 
   const handleAuthError = useCallback(
     (error: any) => {
@@ -60,25 +65,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         error?.message ||
         error?.graphQLErrors?.[0]?.message ||
         'An unexpected error occurred.';
+      const lower = msg.toLowerCase();
 
       if (
-        msg.toLowerCase().includes('unauthorized') ||
-        msg.toLowerCase().includes('unauthenticated') ||
-        msg.toLowerCase().includes('invalid token') ||
-        msg.toLowerCase().includes('token expired')
+        lower.includes('unauthorized') ||
+        lower.includes('unauthenticated') ||
+        lower.includes('invalid token') ||
+        lower.includes('token expired')
       ) {
         toast.error('Session expired. Please log in again.');
         logout(false);
         return;
       }
 
-      if (
-        msg.toLowerCase().includes('forbidden') ||
-        msg.toLowerCase().includes('permission')
-      ) {
-        toast.warning(
-          'Access denied. You do not have permission for this action.'
-        );
+      if (lower.includes('forbidden') || lower.includes('permission')) {
+        toast.warning('Access denied. You do not have permission for this action.');
         return;
       }
 
@@ -87,86 +88,60 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [logout]
   );
 
-  const decodeToken = (token: string): VerifiedToken | null => {
-    try {
-      return jwtDecode<VerifiedToken>(token);
-    } catch (err) {
-      console.error('Failed to decode JWT:', err);
-      return null;
-    }
-  };
+  const tryEnsureAuth = useCallback(async (): Promise<boolean> => {
+    const accessToken = localStorage.getItem('accessToken');
+    const refreshToken = localStorage.getItem('refreshToken');
 
-  const scheduleTokenRefresh = useCallback((exp?: number) => {
-    if (!exp) return;
+    if (!accessToken && !refreshToken) return false;
 
-    const now = Date.now();
-    const expiresAt = exp * 1000;
-    const refreshAt = expiresAt - 5 * 60 * 1000;
-    const delay = refreshAt - now;
-
-    if (delay <= 0) return;
-
-    console.log(`⏳ Scheduling token refresh in ${Math.round(delay / 1000)}s`);
-
-    setTimeout(async () => {
+    if (!accessToken) {
       const refreshed = await refreshAccessToken();
-      if (!refreshed) {
-        logout(false);
-      } else {
-        const newToken = localStorage.getItem('accessToken');
-        const newDecoded = newToken ? decodeToken(newToken) : null;
-        scheduleTokenRefresh(newDecoded?.exp);
-      }
-    }, delay);
-  }, [logout]);
+      if (!refreshed) return false;
+      return true;
+    }
+
+    const decoded = decodeToken(accessToken);
+    if (!decoded?.exp) return false;
+
+    if (decoded.exp * 1000 < Date.now()) {
+      const refreshed = await refreshAccessToken();
+      return refreshed;
+    }
+
+    return true;
+  }, [decodeToken]);
 
   useEffect(() => {
-    const loadUser = async () => {
-      const token = localStorage.getItem('accessToken');
-      if (!token) {
-        setIsLoadingUser(false);
-        return;
-      }
+    const init = async () => {
+      const ok = await tryEnsureAuth();
 
-      const decoded = decodeToken(token);
-      if (!decoded) {
+      if (!ok) {
         logout(false);
         setIsLoadingUser(false);
         return;
       }
 
-      if (decoded.exp && decoded.exp * 1000 < Date.now()) {
-        console.warn('Access token expired — trying refresh...');
-        const refreshed = await refreshAccessToken();
-        if (!refreshed) {
-          logout(false);
-          setIsLoadingUser(false);
-          return;
-        }
-      }
+      const newAccess = localStorage.getItem('accessToken');
+      const decoded = newAccess ? decodeToken(newAccess) : null;
+      if (decoded) setUser(decoded);
 
-      setUser({
-        ...decoded,
-      });
       setIsAuthenticated(true);
-
-      fetchUser().then((res) => {
-        if (res.data?.profile) {
-          setUser(res.data.profile);
-        }
-      });
-
-      scheduleTokenRefresh(decoded.exp);
-
       setIsLoadingUser(false);
     };
 
-    loadUser();
-  }, [fetchUser, logout, scheduleTokenRefresh]);
+    init();
+  }, [tryEnsureAuth, decodeToken, logout]);
 
   return (
     <AuthContext.Provider
-      value={{ isAuthenticated, isLoadingUser, user, logout, handleAuthError }}
+      value={{
+        isAuthenticated,
+        isLoadingUser,
+        user,
+        logout,
+        handleAuthError,
+        tryEnsureAuth,
+      }}
     >
       {children}
     </AuthContext.Provider>
@@ -179,4 +154,3 @@ export const useAuth = () => {
     throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
-
