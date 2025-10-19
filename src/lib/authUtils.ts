@@ -1,26 +1,30 @@
-import { apolloClient } from './apolloClient';
-import {
-  RefreshTokensDocument,
-  type RefreshTokensMutation,
-  type RefreshTokensMutationVariables,
-} from '../graphql/graphql';
-
 export const refreshAccessToken = async (): Promise<boolean> => {
   const refreshToken = localStorage.getItem('refreshToken');
   if (!refreshToken) return false;
 
   try {
-    const res = await apolloClient.mutate<
-      RefreshTokensMutation,
-      RefreshTokensMutationVariables
-    >({
-      mutation: RefreshTokensDocument,
-      variables: { refreshToken },
-      fetchPolicy: 'no-cache',
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/api/graphql`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: `
+          mutation RefreshTokens($refreshToken: String!) {
+            refresh(refreshToken: $refreshToken) {
+              accessToken
+              refreshToken
+            }
+          }
+        `,
+        variables: { refreshToken },
+      }),
     });
 
-    const newAccess = res.data?.refresh?.accessToken;
-    const newRefresh = res.data?.refresh?.refreshToken;
+    const json = await res.json();
+
+    const newAccess = json.data?.refresh?.accessToken;
+    const newRefresh = json.data?.refresh?.refreshToken;
 
     if (newAccess) {
       localStorage.setItem('accessToken', newAccess);
