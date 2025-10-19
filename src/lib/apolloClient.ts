@@ -30,16 +30,16 @@ const authLink = new SetContextLink(({ headers }) => {
 });
 
 let isRefreshing = false;
-let pendingRequests: (() => void)[] = [];
+let pendingRequests: ((success: boolean) => void)[] = [];
 
-const resolvePendingRequests = () => {
-  pendingRequests.forEach((cb) => cb());
+const resolvePendingRequests = (success: boolean) => {
+  pendingRequests.forEach((cb) => cb(success));
   pendingRequests = [];
 };
 
 const waitForTokenRefresh = () =>
-  new Promise<void>((resolve) => {
-    pendingRequests.push(() => resolve());
+  new Promise<boolean>((resolve) => {
+    pendingRequests.push((success) => resolve(success));
   });
 
 const errorLink = new ErrorLink(({ error, operation, forward }) => {
@@ -59,12 +59,15 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
           const refreshPromise = refreshAccessToken()
             .then((success) => {
               if (!success) throw new Error('Token refresh failed');
-              resolvePendingRequests();
+              resolvePendingRequests(true);
             })
             .catch(() => {
+              resolvePendingRequests(false);
               pendingRequests = [];
+
               localStorage.removeItem('accessToken');
               localStorage.removeItem('refreshToken');
+
               toast.error('Session expired. Please log in again.');
               window.location.href = '/login';
             })
@@ -72,26 +75,27 @@ const errorLink = new ErrorLink(({ error, operation, forward }) => {
               isRefreshing = false;
             });
 
-          return new ApolloLink((op, fwd) => {
-            return new Observable((observer) => {
-              refreshPromise
-                .then(() => {
-                  const sub = fwd(op).subscribe(observer);
-                  return () => sub.unsubscribe();
-                })
-                .catch(() => observer.error('Token refresh failed'));
-            });
-          }).request(operation, forward);
+          return new Observable((observer) => {
+            refreshPromise
+              .then(() => {
+                const sub = forward(operation).subscribe(observer);
+                return () => sub.unsubscribe();
+              })
+              .catch((err) => observer.error(err));
+          });
         }
 
-        return new ApolloLink((op, fwd) => {
-          return new Observable((observer) => {
-            waitForTokenRefresh().then(() => {
-              const sub = fwd(op).subscribe(observer);
-              return () => sub.unsubscribe();
-            });
+        return new Observable((observer) => {
+          waitForTokenRefresh().then((success) => {
+            if (!success) {
+              observer.error(new Error('Token refresh failed'));
+              return;
+            }
+
+            const sub = forward(operation).subscribe(observer);
+            return () => sub.unsubscribe();
           });
-        }).request(operation, forward);
+        });
       }
 
       if (code === 'FORBIDDEN' || lowerMsg.includes('forbidden')) {
