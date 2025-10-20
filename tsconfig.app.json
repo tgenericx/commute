@@ -10,6 +10,7 @@
     ],
     "module": "ESNext",
     "types": [
+      "node",
       "vite/client"
     ],
     "skipLibCheck": true,
@@ -27,7 +28,14 @@
     "noUncheckedSideEffectImports": true,
     "verbatimModuleSyntax": false,
     "erasableSyntaxOnly": false,
-    "useUnknownInCatchVariables": false
+    "useUnknownInCatchVariables": false,
+    /* path alias */
+    "baseUrl": ".",
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ]
+    }
   },
   "include": [
     "src"
