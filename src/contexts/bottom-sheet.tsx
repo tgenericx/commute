@@ -8,12 +8,10 @@ export interface BottomSheetContextValue {
   onDragEnd?: () => void;
 }
 
-export const BottomSheetContext = createContext<BottomSheetContextValue | null>(
-  null
-);
+export const BottomSheetContext = createContext<BottomSheetContextValue | null>(null);
 
 export const useBottomSheet = () => {
   const ctx = useContext(BottomSheetContext);
-  if (!ctx) throw new Error("useBottomSheet must be used inside <BottomSheet>");
+  if (!ctx) throw new Error("useBottomSheet must be used within <BottomSheet>");
   return ctx;
 };

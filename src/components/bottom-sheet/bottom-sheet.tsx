@@ -34,13 +34,13 @@ export const BottomSheet = ({
               exit={{ opacity: 0 }}
             />
 
-            {/* Sheet Container */}
+            {/* The House */}
             <motion.div
               className="fixed bottom-0 left-0 right-0 z-50 bg-neutral-900 text-white rounded-t-2xl shadow-xl"
               drag="y"
               dragConstraints={{ top: 0, bottom: 0 }}
               onDragStart={onDragStart}
-              onDragEnd={(e, info) => {
+              onDragEnd={(_, info) => {
                 if (info.offset.y > 100) onClose();
                 onDragEnd?.();
               }}
