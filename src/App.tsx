@@ -13,6 +13,8 @@ import Landing from "./pages/Landing";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/RequireAuth";
+import { Toaster } from "./components/ui/sonner";
+import { ThemeProvider } from "./contexts/theme-provider";
 
 
 
@@ -100,11 +102,16 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-  <BrowserRouter>
-    <AuthProvider>
-      <AppRoutes />
-    </AuthProvider>
-  </BrowserRouter>
+  <>
+    <Toaster />
+    <BrowserRouter>
+      <AuthProvider>
+        <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+          <AppRoutes />
+        </ThemeProvider>
+      </AuthProvider>
+    </BrowserRouter>
+  </>
 );
 
 export default App;

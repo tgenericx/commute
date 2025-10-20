@@ -2,11 +2,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import { useNavigate } from 'react-router-dom';
 import { apolloClient } from '../lib/apolloClient';
 import { jwtDecode } from 'jwt-decode';
-
-export type VerifiedToken<T = unknown> = {
-  iat?: number;
-  exp?: number;
-} & T;
+import { toast } from "sonner";
 
 interface AuthContextType {
   isAuthenticated: boolean;
@@ -31,17 +27,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // decode token with `jwt-decode`
     try {
       const decodedToken = jwtDecode(token);
 
+      // Check if token is expired
       const currentTime = Date.now() / 1000;
       if (decodedToken.exp && decodedToken.exp < currentTime) {
+        // Token expired
         logout(false);
         return;
       }
 
+      // Token is valid, set authentication state
       setIsAuthenticated(true);
-      setUser(decodedToken);
+      setUser(decodedToken); // or extract user data from decoded token
       setIsLoadingUser(false);
     } catch (error) {
       console.error('Error decoding token:', error);
@@ -56,7 +56,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     apolloClient.clearStore();
     navigate('/login');
-    if (alert) window.alert('You have been logged out successfully');
+    if (alert) toast.success('You have been logged out successfully');
   };
 
   const handleAuthError = (error: any) => {
@@ -69,17 +69,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       msg.includes('invalid token') ||
       msg.includes('token expired')
     ) {
-      window.alert('Please log in again');
+      toast.error('Please log in again');
       logout(false);
       return;
     }
 
     if (msg.includes('Forbidden') || msg.includes('permission')) {
-      window.alert('You do not have permission to perform this action');
+      toast.error('You do not have permission to perform this action');
       return;
     }
 
-    window.alert(msg)
+    toast.error(msg);
   };
 
   return (
