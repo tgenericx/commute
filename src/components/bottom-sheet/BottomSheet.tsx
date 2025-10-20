@@ -1,10 +1,16 @@
-import { AnimatePresence, motion, useDragControls } from "framer-motion";
+import {
+  AnimatePresence,
+  motion,
+  useMotionValue,
+  useSpring,
+  useDragControls,
+} from "framer-motion";
 import { createContext, useContext, useRef } from "react";
-import { cn } from "../lib/utils";
 
 interface BottomSheetContextType {
   onClose: () => void;
   controls: ReturnType<typeof useDragControls>;
+  y: any;
 }
 
 const BottomSheetContext = createContext<BottomSheetContextType | null>(null);
@@ -23,17 +29,14 @@ interface BottomSheetProps {
 
 export const BottomSheet = ({ open, onClose, children }: BottomSheetProps) => {
   const controls = useDragControls();
-  const sheetRef = useRef<HTMLDivElement>(null);
+  const y = useSpring(useMotionValue(0), {
+    stiffness: 400,
+    damping: 35,
+  });
 
   return (
-    <BottomSheetContext.Provider value={{ onClose, controls }}>
-      <AnimatePresence>
-        {open && (
-          <>
-            {children}
-          </>
-        )}
-      </AnimatePresence>
+    <BottomSheetContext.Provider value={{ onClose, controls, y }}>
+      <AnimatePresence>{open && children}</AnimatePresence>
     </BottomSheetContext.Provider>
   );
 };
