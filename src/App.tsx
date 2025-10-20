@@ -15,6 +15,8 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/RequireAuth";
 import { Toaster } from "./components/ui/sonner";
 import { ThemeProvider } from "./contexts/theme-provider";
+import { AuthSheetProvider } from "./contexts/auth-sheet";
+import { AuthSheet } from "./components/auth";
 
 
 
@@ -107,7 +109,10 @@ const App = () => (
     <BrowserRouter>
       <AuthProvider>
         <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-          <AppRoutes />
+          <AuthSheetProvider>
+            <AuthSheet />
+            <AppRoutes />
+          </AuthSheetProvider>
         </ThemeProvider>
       </AuthProvider>
     </BrowserRouter>

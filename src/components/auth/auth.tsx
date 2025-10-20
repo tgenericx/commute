@@ -1,40 +1,28 @@
-import { useState } from "react";
-import {
-  BottomSheet,
-  BottomSheetHeader,
-  BottomSheetBody,
-  BottomSheetFooter,
-} from "@/components/bottom-sheet";
+import { BottomSheet, BottomSheetHeader, BottomSheetBody, BottomSheetFooter } from "@/components/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { SignInForm } from "./login.form";
 import { SignUpForm } from "./signup.form";
+import { useAuthSheet } from "@/contexts/auth-sheet";
 
-export const AuthSheet = ({
-  open,
-  onClose,
-}: {
-  open: boolean;
-  onClose: () => void;
-}) => {
-  const [page, setPage] = useState<"signin" | "signup">("signin");
+export const AuthSheet = () => {
+  const { open, closeAuth, page, setPage } = useAuthSheet();
 
-  const togglePage = () => setPage((p) => (p === "signin" ? "signup" : "signin"));
+  const togglePage = () => setPage(page === "signin" ? "signup" : "signin");
 
   return (
-    <BottomSheet open={open} onClose={onClose}>
+    <BottomSheet open={open} onClose={closeAuth}>
       <BottomSheetHeader />
 
       <BottomSheetBody>
         {page === "signin" ? (
-          <SignInForm onSuccess={onClose} />
+          <SignInForm onSuccess={closeAuth} />
         ) : (
-          <SignUpForm onSuccess={onClose} />
+          <SignUpForm onSuccess={closeAuth} />
         )}
       </BottomSheetBody>
 
       <BottomSheetFooter>
         <Button
-          type="button"
           variant="ghost"
           className="w-full text-sm text-neutral-400 hover:text-neutral-200"
           onClick={togglePage}
