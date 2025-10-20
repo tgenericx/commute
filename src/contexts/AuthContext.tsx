@@ -1,14 +1,14 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { apolloClient } from '../lib/apolloClient';
 import { jwtDecode } from 'jwt-decode';
 import { toast } from "sonner";
+import { useAuthSheet } from '@/contexts/auth-sheet';
 
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoadingUser: boolean;
   user: any | null;
-  logout: () => void;
+  logout: (alert?: boolean) => void;
   handleAuthError: (error: any) => void;
 }
 
@@ -18,7 +18,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
   const [user, setUser] = useState<any | null>(null);
-  const navigate = useNavigate();
+
+  const { openAuth } = useAuthSheet();
 
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
@@ -27,21 +28,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // decode token with `jwt-decode`
     try {
-      const decodedToken = jwtDecode(token);
+      const decodedToken: any = jwtDecode(token);
 
-      // Check if token is expired
       const currentTime = Date.now() / 1000;
       if (decodedToken.exp && decodedToken.exp < currentTime) {
-        // Token expired
         logout(false);
         return;
       }
 
-      // Token is valid, set authentication state
       setIsAuthenticated(true);
-      setUser(decodedToken); // or extract user data from decoded token
+      setUser(decodedToken);
       setIsLoadingUser(false);
     } catch (error) {
       console.error('Error decoding token:', error);
@@ -55,7 +52,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setIsAuthenticated(false);
     setUser(null);
     apolloClient.clearStore();
-    navigate('/login');
+
+    openAuth('signin');
+
     if (alert) toast.success('You have been logged out successfully');
   };
 
