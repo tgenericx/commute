@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graphql-codegen --config codegen.ts",
     "dev": "vite",
-    "build": "pn codegen && tsc -b && vite build",
+    "build": "pnpm codegen && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },
@@ -17,6 +17,7 @@
     "@radix-ui/react-label": "^2.1.7",
     "@radix-ui/react-slot": "^1.2.3",
     "@tailwindcss/vite": "^4.1.14",
+    "axios": "^1.12.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "framer-motion": "^12.23.24",
