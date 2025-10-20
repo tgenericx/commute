@@ -17,25 +17,27 @@ import {
   type MarketplaceInventoriesQueryVariables,
 } from '../graphql/graphql';
 
-// If these components exist in your project, import them.
-// If not, create placeholders for now.
 import Navbar from '../components/Navbar';
 import PostCard from '../components/PostCard';
 import EventCard from '../components/EventCard';
 import ProductCard from '../components/ProductCard';
 import ListingCard from '../components/ListingCard';
 import FloatingActionButton from '../components/FloatingActionButton';
+import { TestBottomSheet } from '@/components/bottomSheet.test';
 
-// Temporary placeholders (remove these if real components exist)
-const Skeleton = ({ style }: { style?: React.CSSProperties }) => (
-  <div style={{ background: '#eee', borderRadius: 4, height: 20, ...style }} />
+// Simple skeleton loader
+const Skeleton = ({ className = '' }: { className?: string }) => (
+  <div className={`animate-pulse bg-muted rounded ${className}`} />
 );
 
+// Carousel stubs
 const Carousel = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ overflowX: 'auto', display: 'flex', gap: '1rem' }}>{children}</div>
+  <div className="flex gap-4 overflow-x-auto py-2">{children}</div>
 );
 const CarouselContent = ({ children }: { children: React.ReactNode }) => <>{children}</>;
-const CarouselItem = ({ children }: { children: React.ReactNode }) => <div>{children}</div>;
+const CarouselItem = ({ children }: { children: React.ReactNode }) => (
+  <div className="flex-shrink-0">{children}</div>
+);
 
 const Index = () => {
   const observerRef = useRef<HTMLDivElement | null>(null);
@@ -63,9 +65,10 @@ const Index = () => {
   const {
     data: listingsData,
     error: listingsError,
-  } = useQuery<MarketplaceListingsQuery, MarketplaceListingsQueryVariables>(MarketplaceListingsDocument, {
-    variables: { take: 5 },
-  });
+  } = useQuery<MarketplaceListingsQuery, MarketplaceListingsQueryVariables>(
+    MarketplaceListingsDocument,
+    { variables: { take: 5 } }
+  );
 
   // Inventories
   const {
@@ -73,9 +76,7 @@ const Index = () => {
     error: inventoriesError,
   } = useQuery<MarketplaceInventoriesQuery, MarketplaceInventoriesQueryVariables>(
     MarketplaceInventoriesDocument,
-    {
-      variables: { take: 5 },
-    }
+    { variables: { take: 5 } }
   );
 
   useEffect(() => {
@@ -127,29 +128,36 @@ const Index = () => {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: '#fafafa' }}>
+    <div className="min-h-screen bg-background text-foreground transition-colors">
       <Navbar />
 
-      <div style={{ maxWidth: 800, margin: '2rem auto', padding: '1rem' }}>
+      <div className="max-w-3xl mx-auto p-4 mt-8 space-y-8">
+        <TestBottomSheet />
+
+        {/* Loading skeleton */}
         {postsLoading && !posts.length ? (
           Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} style={{ background: '#fff', borderRadius: 8, padding: '1rem', marginBottom: '1rem' }}>
-              <Skeleton style={{ height: 10, width: '50%' }} />
-              <Skeleton style={{ height: 20, width: '80%', marginTop: 10 }} />
+            <div
+              key={i}
+              className="bg-card rounded-lg p-4 shadow-sm space-y-2"
+            >
+              <Skeleton className="h-3 w-1/2" />
+              <Skeleton className="h-4 w-4/5" />
             </div>
           ))
         ) : (
           posts.map((post, index) => (
-            <div key={post.id} style={{ marginBottom: '2rem' }}>
+            <div key={post.id} className="space-y-4">
               <PostCard post={post} />
 
+              {/* Events block */}
               {index === eventInsertIndex && upcomingEvents.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
                   viewport={{ once: true }}
-                  style={{ background: '#fff', borderRadius: 8, padding: '1rem', marginTop: '1rem' }}
+                  className="bg-card rounded-lg p-4 shadow-md"
                 >
                   <Carousel>
                     <CarouselContent>
@@ -163,13 +171,14 @@ const Index = () => {
                 </motion.div>
               )}
 
+              {/* Marketplace block */}
               {index === marketInsertIndex && marketplaceItems.length > 0 && (
                 <motion.div
                   initial={{ opacity: 0, y: 40 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, ease: 'easeOut' }}
                   viewport={{ once: true }}
-                  style={{ background: '#fff', borderRadius: 8, padding: '1rem', marginTop: '1rem' }}
+                  className="bg-card rounded-lg p-4 shadow-md"
                 >
                   <Carousel>
                     <CarouselContent>
@@ -190,14 +199,18 @@ const Index = () => {
           ))
         )}
 
+        {/* Infinite scroll loader */}
         {pageInfo?.hasNextPage && (
-          <div ref={observerRef} style={{ display: 'flex', justifyContent: 'center', padding: '2rem' }}>
+          <div
+            ref={observerRef}
+            className="flex justify-center py-8 text-muted-foreground text-sm"
+          >
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, ease: 'easeOut' }}
             >
-              <div style={{ fontSize: 14, opacity: 0.7 }}>Loading more posts...</div>
+              Loading more posts...
             </motion.div>
           </div>
         )}
