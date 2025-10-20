@@ -1,5 +1,6 @@
+import { useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { Navigate, useLocation } from "react-router-dom";
+import { useAuthSheet } from "../contexts/auth-sheet";
 
 interface RequireAuthProps {
   children: React.ReactNode;
@@ -7,7 +8,13 @@ interface RequireAuthProps {
 
 export const RequireAuth = ({ children }: RequireAuthProps) => {
   const { isAuthenticated, isLoadingUser } = useAuth();
-  const location = useLocation();
+  const { openAuth } = useAuthSheet();
+
+  useEffect(() => {
+    if (!isLoadingUser && !isAuthenticated) {
+      openAuth("signin");
+    }
+  }, [isLoadingUser, isAuthenticated, openAuth]);
 
   if (isLoadingUser) {
     return (
@@ -18,9 +25,8 @@ export const RequireAuth = ({ children }: RequireAuthProps) => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return null;
   }
 
   return <>{children}</>;
 };
-
