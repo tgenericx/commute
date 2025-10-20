@@ -1,4 +1,4 @@
-import { useBottomSheet } from "@/context/bottom-sheet";
+import { useBottomSheet } from "@/contexts/bottom-sheet";
 import { X } from "lucide-react";
 
 export const BottomSheetHeader = ({

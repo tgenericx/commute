@@ -1,4 +1,4 @@
-import { BottomSheetContext } from "@/context/bottom-sheet";
+import { BottomSheetContext } from "@/contexts/bottom-sheet";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BottomSheetProps {
