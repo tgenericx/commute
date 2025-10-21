@@ -53,8 +53,8 @@ export function useUploadMedia(): UseUploadMediaResult {
 
       const uploads = response.data.filter((item) => item.success && item.data);
 
-      const mapped = uploads.map((item, i) => {
-        const file = files[i];
+      const mapped = uploads.map((item) => {
+        const file = files.find((f) => f.name === item.filename);
         const resourceType = file?.type?.startsWith('video')
           ? ResourceType.Video
           : ResourceType.Image;
