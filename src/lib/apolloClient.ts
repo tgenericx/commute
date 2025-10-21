@@ -3,123 +3,55 @@ import {
   InMemoryCache,
   HttpLink,
   ApolloLink,
-  Observable,
-} from '@apollo/client';
-import { SetContextLink } from '@apollo/client/link/context';
-import { ErrorLink } from '@apollo/client/link/error';
+} from "@apollo/client";
+import { SetContextLink } from "@apollo/client/link/context";
+import { ErrorLink } from "@apollo/client/link/error";
 import {
   CombinedGraphQLErrors,
   CombinedProtocolErrors,
-} from '@apollo/client/errors';
-import { toast } from 'sonner';
-import { refreshAccessToken } from './authUtils';
+} from "@apollo/client/errors";
+import { toast } from "sonner";
 
 const httpLink = new HttpLink({
   uri: `${import.meta.env.VITE_API_BASE_URL}/api/graphql`,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { "Content-Type": "application/json" },
 });
 
 const authLink = new SetContextLink(({ headers }) => {
-  const token = localStorage.getItem('accessToken');
+  const token = localStorage.getItem("accessToken");
   return {
     headers: {
       ...headers,
-      authorization: token ? `Bearer ${token}` : '',
+      authorization: token ? `Bearer ${token}` : "",
     },
   };
 });
 
-let isRefreshing = false;
-let pendingRequests: ((success: boolean) => void)[] = [];
-
-const resolvePendingRequests = (success: boolean) => {
-  pendingRequests.forEach((cb) => cb(success));
-  pendingRequests = [];
-};
-
-const waitForTokenRefresh = () =>
-  new Promise<boolean>((resolve) => {
-    pendingRequests.push((success) => resolve(success));
-  });
-
-const errorLink = new ErrorLink(({ error, operation, forward }) => {
+const errorLink = new ErrorLink(({ error }) => {
   if (CombinedGraphQLErrors.is(error)) {
-    for (const { message, extensions } of error.errors) {
-      const code = extensions?.code;
-      const lowerMsg = message.toLowerCase();
-
-      if (
-        code === 'UNAUTHENTICATED' ||
-        lowerMsg.includes('invalid token') ||
-        lowerMsg.includes('token expired')
-      ) {
-        if (!isRefreshing) {
-          isRefreshing = true;
-
-          const refreshPromise = refreshAccessToken()
-            .then((success) => {
-              if (!success) throw new Error('Token refresh failed');
-              resolvePendingRequests(true);
-            })
-            .catch(() => {
-              resolvePendingRequests(false);
-              pendingRequests = [];
-
-              localStorage.removeItem('accessToken');
-              localStorage.removeItem('refreshToken');
-
-              toast.error('Session expired. Please log in again.');
-              window.location.href = '/login';
-            })
-            .finally(() => {
-              isRefreshing = false;
-            });
-
-          return new Observable((observer) => {
-            refreshPromise
-              .then(() => {
-                const sub = forward(operation).subscribe(observer);
-                return () => sub.unsubscribe();
-              })
-              .catch((err) => observer.error(err));
-          });
-        }
-
-        return new Observable((observer) => {
-          waitForTokenRefresh().then((success) => {
-            if (!success) {
-              observer.error(new Error('Token refresh failed'));
-              return;
-            }
-
-            const sub = forward(operation).subscribe(observer);
-            return () => sub.unsubscribe();
-          });
-        });
-      }
-
-      if (code === 'FORBIDDEN' || lowerMsg.includes('forbidden')) {
-        toast.warning('Access denied. You do not have permission for this action.');
-        return;
-      }
-
-      console.error(`[GraphQL error]: Message: ${message}`);
-    }
+    error.errors.forEach(({ message, locations, path }) => {
+      console.log(
+        `[GraphQL error]: Message: ${message}, Location: ${locations}, Path: ${path}`
+      )
+      toast.warning(message)
+    });
   } else if (CombinedProtocolErrors.is(error)) {
-    for (const { message, extensions } of error.errors) {
-      console.error(
+    error.errors.forEach(({ message, extensions }) => {
+      console.log(
         `[Protocol error]: Message: ${message}, Extensions: ${JSON.stringify(
           extensions
         )}`
-      );
-    }
+      )
+      toast.warning(message)
+    });
   } else {
     console.error(`[Network error]: ${error}`);
-    toast.error('Network error. Please check your connection.');
   }
 });
 
+const link = ApolloLink.from([errorLink, authLink, httpLink])
+
 export const apolloClient = new ApolloClient({
-  link: ApolloLink.from([errorLink, authLink, httpLink]),
+  link,
   cache: new InMemoryCache(),
 });

@@ -3,29 +3,6 @@
 
 @custom-variant dark (&:is(.dark *));
 
-@layer base {
-  :root {
-    @apply text-gray-900 bg-gray-50;
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  }
-
-  body {
-    @apply m-0 min-h-screen flex flex-col;
-  }
-
-  a {
-    @apply text-blue-600 hover:text-blue-800;
-  }
-
-  button {
-    @apply rounded-md border border-transparent px-4 py-2 font-medium transition-colors duration-200;
-  }
-
-  button:hover {
-    @apply border-blue-400;
-  }
-}
-
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

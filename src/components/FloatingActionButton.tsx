@@ -2,41 +2,36 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Plus, PenSquare, Calendar, Package } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useTheme } from 'next-themes'; // for theme awareness
 
 const FloatingActionButton = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [showCreatePost, setShowCreatePost] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const { theme } = useTheme();
 
   const actions = [
     {
       icon: PenSquare,
       label: 'Create Post',
-      color: 'bg-primary text-primary-foreground',
+      color: 'bg-primary text-primary-foreground hover:bg-primary/90',
       onClick: () => {
-        setShowCreatePost(true);
         setIsOpen(false);
       },
     },
     {
       icon: Calendar,
       label: 'Create Event',
-      color: 'bg-accent text-accent-foreground',
-      onClick: () => {
-        setIsOpen(false);
-      },
+      color: 'bg-accent text-accent-foreground hover:bg-accent/90',
+      onClick: () => setIsOpen(false),
     },
     {
       icon: Package,
       label: 'List Item',
-      color: 'bg-secondary text-secondary-foreground',
-      onClick: () => {
-        setIsOpen(false);
-      },
+      color: 'bg-secondary text-secondary-foreground hover:bg-secondary/90',
+      onClick: () => setIsOpen(false),
     },
   ];
 
-  // Close when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -47,9 +42,11 @@ const FloatingActionButton = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [isOpen]);
 
+  const blurColor =
+    theme === 'dark' ? 'backdrop-blur-md bg-black/60' : 'backdrop-blur-md bg-white/70';
+
   return (
     <>
-
       <div
         ref={containerRef}
         className="fixed bottom-6 right-6 z-50 flex flex-col-reverse items-end gap-3"
@@ -59,14 +56,19 @@ const FloatingActionButton = () => {
             <div
               key={action.label}
               className={cn(
-                'flex items-center gap-3 opacity-0 translate-y-3 animate-fab-action',
+                'flex items-center gap-3 opacity-0 translate-y-3 animate-fab-action'
               )}
               style={{
                 animationDelay: `${index * 80}ms`,
                 animationFillMode: 'forwards',
               }}
             >
-              <span className="bg-card/90 backdrop-blur-sm text-foreground/90 px-3 py-1 rounded-lg shadow-card text-sm whitespace-nowrap border border-border">
+              <span
+                className={cn(
+                  'px-3 py-1 rounded-lg text-sm whitespace-nowrap shadow-lg border border-border',
+                  'bg-card/90 text-foreground/90 backdrop-blur-sm'
+                )}
+              >
                 {action.label}
               </span>
               <Button
@@ -84,11 +86,14 @@ const FloatingActionButton = () => {
 
         <Button
           size="icon"
+          onClick={() => setIsOpen((prev) => !prev)}
           className={cn(
-            'h-14 w-14 rounded-full shadow-lg backdrop-blur-md bg-primary text-primary-foreground hover:scale-110 active:scale-95 transition-all duration-300',
+            'h-14 w-14 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center',
+            'hover:scale-110 active:scale-95',
+            blurColor,
+            'text-primary-foreground bg-primary',
             isOpen ? 'rotate-45' : 'rotate-0'
           )}
-          onClick={() => setIsOpen((prev) => !prev)}
         >
           <Plus className="h-6 w-6" />
         </Button>

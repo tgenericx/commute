@@ -1,18 +1,12 @@
-import {
-  createContext,
-  useContext,
-  useEffect,
-  useState,
-  useCallback,
-  type ReactNode,
-} from 'react';
-import { useNavigate } from 'react-router-dom';
-import { apolloClient } from '../lib/apolloClient';
-import { toast } from 'sonner';
-import { jwtDecode } from 'jwt-decode';
-import { refreshAccessToken } from '../lib/authUtils';
+import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { apolloClient } from "../lib/apolloClient";
+import { jwtDecode } from "jwt-decode";
+import { toast } from "sonner";
+import { useAuthSheet } from "@/contexts/auth-sheet";
+import { refreshAccessToken } from "@/lib/authUtils";
+import { useNavigate } from "react-router-dom";
 
-export type VerifiedToken<T = unknown> = {
+export type DecodedToken<T = unknown> = {
   iat?: number;
   exp?: number;
 } & T;
@@ -23,7 +17,10 @@ interface AuthContextType<TUser = Record<string, any>> {
   user: TUser | null;
   logout: (showToast?: boolean) => void;
   handleAuthError: (error: any) => void;
-  tryEnsureAuth: () => Promise<boolean>;
+  refreshToken: () => Promise<boolean>;
+  loginSuccess: (accessToken: string, refreshToken: string) => void; // ✅ new
+  redirectPath: string | null; // ✅ new
+  setRedirectPath: (path: string | null) => void; // ✅ new
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,106 +28,113 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoadingUser, setIsLoadingUser] = useState(true);
-  const [user, setUser] = useState<Record<string, any> | null>(null);
+  const [user, setUser] = useState<any | null>(null);
+  const [redirectPath, setRedirectPath] = useState<string | null>(null); // ✅ new
+  const { openAuth } = useAuthSheet();
   const navigate = useNavigate();
 
-  const decodeToken = useCallback((token: string): VerifiedToken | null => {
+  const decodeAndSetUser = (token: string) => {
     try {
-      return jwtDecode<VerifiedToken>(token);
-    } catch {
-      return null;
+      const decoded: DecodedToken = jwtDecode(token);
+      setUser(decoded);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error("Invalid token:", err);
     }
-  }, []);
+  };
 
-  const logout = useCallback(
-    (showToast: boolean = true) => {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      setIsAuthenticated(false);
-      setUser(null);
-      apolloClient.clearStore();
-      navigate('/login');
-
-      if (showToast) {
-        toast.success('You have been logged out successfully.');
-      }
-    },
-    [navigate]
-  );
-
-  const handleAuthError = useCallback(
-    (error: any) => {
-      console.error('🔒 Auth Error:', error);
-      const msg =
-        error?.message ||
-        error?.graphQLErrors?.[0]?.message ||
-        'An unexpected error occurred.';
-      const lower = msg.toLowerCase();
-
-      if (
-        lower.includes('unauthorized') ||
-        lower.includes('unauthenticated') ||
-        lower.includes('invalid token') ||
-        lower.includes('token expired')
-      ) {
-        toast.error('Session expired. Please log in again.');
-        logout(false);
-        return;
-      }
-
-      if (lower.includes('forbidden') || lower.includes('permission')) {
-        toast.warning('Access denied. You do not have permission for this action.');
-        return;
-      }
-
-      toast.error(msg);
-    },
-    [logout]
-  );
-
-  const tryEnsureAuth = useCallback(async (): Promise<boolean> => {
-    const accessToken = localStorage.getItem('accessToken');
-    const refreshToken = localStorage.getItem('refreshToken');
-
-    if (!accessToken && !refreshToken) return false;
-
-    if (!accessToken) {
-      const refreshed = await refreshAccessToken();
-      if (!refreshed) return false;
-      return true;
+  const refreshToken = async (): Promise<boolean> => {
+    const ok = await refreshAccessToken();
+    if (ok) {
+      const token = localStorage.getItem("accessToken");
+      if (token) decodeAndSetUser(token);
+      await apolloClient.resetStore();
     }
+    return ok;
+  };
 
-    const decoded = decodeToken(accessToken);
-    if (!decoded?.exp) return false;
+  // ✅ Handle login success immediately (no reload needed)
+  const loginSuccess = (accessToken: string, refreshToken: string) => {
+    localStorage.setItem("accessToken", accessToken);
+    localStorage.setItem("refreshToken", refreshToken);
+    decodeAndSetUser(accessToken);
+    apolloClient.resetStore();
+    toast.success("Logged in successfully!");
 
-    if (decoded.exp * 1000 < Date.now()) {
-      const refreshed = await refreshAccessToken();
-      return refreshed;
+    // if user tried accessing a protected route before
+    if (redirectPath) {
+      navigate(redirectPath);
+      setRedirectPath(null);
     }
-
-    return true;
-  }, [decodeToken]);
+  };
 
   useEffect(() => {
-    const init = async () => {
-      const ok = await tryEnsureAuth();
-
-      if (!ok) {
-        logout(false);
+    const initAuth = async () => {
+      const token = localStorage.getItem("accessToken");
+      if (!token) {
         setIsLoadingUser(false);
         return;
       }
 
-      const newAccess = localStorage.getItem('accessToken');
-      const decoded = newAccess ? decodeToken(newAccess) : null;
-      if (decoded) setUser(decoded);
+      try {
+        const decoded: DecodedToken = jwtDecode(token);
+        const now = Date.now() / 1000;
 
-      setIsAuthenticated(true);
-      setIsLoadingUser(false);
+        if (decoded.exp && decoded.exp < now) {
+          const refreshed = await refreshToken();
+          if (!refreshed) {
+            logout(false);
+            return;
+          }
+        } else {
+          decodeAndSetUser(token);
+        }
+      } catch (err) {
+        console.error("Error decoding token:", err);
+        logout(false);
+      } finally {
+        setIsLoadingUser(false);
+      }
     };
 
-    init();
-  }, [tryEnsureAuth, decodeToken, logout]);
+    initAuth();
+  }, []);
+
+  const logout = (alert: boolean = true) => {
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("refreshToken");
+    setIsAuthenticated(false);
+    setUser(null);
+    apolloClient.clearStore();
+    openAuth("signin");
+    if (alert) toast.success("You have been logged out successfully");
+  };
+
+  const handleAuthError = (error: any) => {
+    console.error("🔒 Auth Error:", error);
+    const msg =
+      error?.message || error?.graphQLErrors?.[0]?.message || "An error occurred";
+
+    if (
+      msg.includes("Unauthorized") ||
+      msg.includes("unauthenticated") ||
+      msg.includes("invalid token") ||
+      msg.includes("token expired")
+    ) {
+      toast.error("Session expired. Refreshing...");
+      refreshToken().then((ok) => {
+        if (!ok) logout(false);
+      });
+      return;
+    }
+
+    if (msg.includes("Forbidden") || msg.includes("permission")) {
+      toast.error("You do not have permission to perform this action");
+      return;
+    }
+
+    toast.error(msg);
+  };
 
   return (
     <AuthContext.Provider
@@ -140,7 +144,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         user,
         logout,
         handleAuthError,
-        tryEnsureAuth,
+        refreshToken,
+        loginSuccess, // ✅
+        redirectPath, // ✅
+        setRedirectPath, // ✅
       }}
     >
       {children}
@@ -149,8 +156,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 };
 
 export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context)
-    throw new Error('useAuth must be used within an AuthProvider');
-  return context;
+  const ctx = useContext(AuthContext);
+  if (!ctx) throw new Error("useAuth must be used within <AuthProvider>");
+  return ctx;
 };

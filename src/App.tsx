@@ -7,13 +7,15 @@ import Index from "./pages/Index";
 // import Profile from "./pages/Profile";
 // import VendorProfile from "./pages/VendorProfile";
 // import Signup from "./pages/Signup";
-import Login from "./pages/Login";
 import Landing from "./pages/Landing";
 // import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { RequireAuth } from "./components/RequireAuth";
 import { Toaster } from "./components/ui/sonner";
+import { ThemeProvider } from "./contexts/theme-provider";
+import { AuthSheetProvider } from "./contexts/auth-sheet";
+import { AuthSheet } from "./components/auth";
 
 
 
@@ -33,7 +35,6 @@ const AppRoutes = () => {
       {/* Public routes */}
       <Route path="/landing" element={<Landing />} />
       {/* <Route path="/signup" element={<Signup />} /> */}
-      <Route path="/login" element={<Login />} />
       {/* <Route path="/auth/verify-email" element={<VerifyEmail />} /> */}
 
       Protected routes
@@ -102,11 +103,16 @@ const AppRoutes = () => {
 
 const App = () => (
   <>
-    <Toaster />
     <BrowserRouter>
-      <AuthProvider>
-        <AppRoutes />
-      </AuthProvider>
+      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+        <Toaster />
+        <AuthSheetProvider>
+          <AuthProvider>
+            <AuthSheet />
+            <AppRoutes />
+          </AuthProvider>
+        </AuthSheetProvider>
+      </ThemeProvider>
     </BrowserRouter>
   </>
 );
