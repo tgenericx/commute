@@ -29,11 +29,12 @@ export const SignInForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.identifier);
       const res = await login({
         variables: {
           userData: {
-            email: data.identifier.includes("@") ? data.identifier : undefined,
-            username: !data.identifier.includes("@") ? data.identifier : undefined,
+            email: isEmail ? data.identifier : undefined,
+            username: !isEmail ? data.identifier : undefined,
             password: data.password,
           },
         },
