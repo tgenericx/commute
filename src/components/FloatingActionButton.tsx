@@ -32,7 +32,6 @@ const FloatingActionButton = () => {
     },
   ];
 
-  // Close FAB when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {

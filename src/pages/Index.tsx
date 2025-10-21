@@ -23,7 +23,6 @@ import EventCard from '../components/EventCard';
 import ProductCard from '../components/ProductCard';
 import ListingCard from '../components/ListingCard';
 import FloatingActionButton from '../components/FloatingActionButton';
-import { AuthExample, BottomSheetWithForm, ExampleUsage } from '@/components/bottomSheet.test';
 
 // Simple skeleton loader
 const Skeleton = ({ className = '' }: { className?: string }) => (
@@ -132,9 +131,6 @@ const Index = () => {
       <Navbar />
 
       <div className="max-w-3xl mx-auto p-4 mt-8 space-y-8">
-        <ExampleUsage />
-        <BottomSheetWithForm />
-        <AuthExample />
 
         {/* Loading skeleton */}
         {postsLoading && !posts.length ? (

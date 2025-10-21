@@ -11,11 +11,11 @@ export type DecodedToken<T = unknown> = {
   exp?: number;
 } & T;
 
-interface AuthContextType {
+interface AuthContextType<TUser = Record<string, any>> {
   isAuthenticated: boolean;
   isLoadingUser: boolean;
-  user: any | null;
-  logout: (alert?: boolean) => void;
+  user: TUser | null;
+  logout: (showToast?: boolean) => void;
   handleAuthError: (error: any) => void;
   refreshToken: () => Promise<boolean>;
   loginSuccess: (accessToken: string, refreshToken: string) => void; // ✅ new
