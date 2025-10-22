@@ -6,11 +6,10 @@ import Index from "./pages/Index";
 // import BoardDetail from "./pages/BoardDetail";
 // import Profile from "./pages/Profile";
 // import VendorProfile from "./pages/VendorProfile";
-// import Signup from "./pages/Signup";
 import Landing from "./pages/Landing";
 // import VerifyEmail from "./pages/VerifyEmail";
 import NotFound from "./pages/NotFound";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { AuthProvider, useAuth } from "./contexts/auth-context";
 import { RequireAuth } from "./components/RequireAuth";
 import { Toaster } from "./components/ui/sonner";
 import { ThemeProvider } from "./contexts/theme-provider";
@@ -34,7 +33,6 @@ const AppRoutes = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/landing" element={<Landing />} />
-      {/* <Route path="/signup" element={<Signup />} /> */}
       {/* <Route path="/auth/verify-email" element={<VerifyEmail />} /> */}
 
       Protected routes

@@ -4,7 +4,6 @@ import {
   HttpLink,
   ApolloLink,
 } from "@apollo/client";
-import { SetContextLink } from "@apollo/client/link/context";
 import { ErrorLink } from "@apollo/client/link/error";
 import {
   CombinedGraphQLErrors,
@@ -12,19 +11,34 @@ import {
 } from "@apollo/client/errors";
 import { toast } from "sonner";
 
+export const GRAPHQL_URL = `${import.meta.env.VITE_API_BASE_URL}/api/graphql`;
+
 const httpLink = new HttpLink({
-  uri: `${import.meta.env.VITE_API_BASE_URL}/api/graphql`,
-  headers: { "Content-Type": "application/json" },
+  uri: GRAPHQL_URL,
 });
 
-const authLink = new SetContextLink(({ headers }) => {
+const authLink = new ApolloLink((operation, forward) => {
   const token = localStorage.getItem("accessToken");
-  return {
-    headers: {
-      ...headers,
-      authorization: token ? `Bearer ${token}` : "",
-    },
-  };
+
+  console.log(`🔒 LOG: AuthLink executed for operation: ${operation.operationName || 'Unnamed'}`);
+
+  operation.setContext(({ headers = {} }) => {
+    const authorizationHeader = token ? `Bearer ${token}` : "";
+
+    if (token) {
+      console.log("🔒 LOG: Access token found. Attaching Authorization header.");
+    } else {
+      console.log("🔒 LOG: No access token found. Authorization header will be empty.");
+    }
+
+    return {
+      headers: {
+        ...headers,
+        authorization: authorizationHeader,
+      },
+    }
+  });
+  return forward(operation);
 });
 
 const errorLink = new ErrorLink(({ error }) => {
@@ -49,9 +63,12 @@ const errorLink = new ErrorLink(({ error }) => {
   }
 });
 
+console.log("🔗 LOG: Assembling Apollo Link chain: [errorLink, authLink, httpLink]");
 const link = ApolloLink.from([errorLink, authLink, httpLink])
 
 export const apolloClient = new ApolloClient({
   link,
   cache: new InMemoryCache(),
 });
+
+console.log("✅ LOG: Apollo Client initialized.");

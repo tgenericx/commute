@@ -9,7 +9,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { LoginDocument, LoginMutation, LoginMutationVariables } from "@/graphql/graphql";
-import { useAuth } from "@/contexts/AuthContext";
+import { useAuth } from "@/contexts/auth-context";
 
 const loginSchema = z.object({
   identifier: z.string().min(1, "Email or username is required"),
@@ -25,7 +25,7 @@ export const SignInForm = ({ onSuccess }: { onSuccess: () => void }) => {
   });
 
   const [login, { loading }] = useMutation<LoginMutation, LoginMutationVariables>(LoginDocument);
-  const { loginSuccess } = useAuth(); // ✅ use new method
+  const { loginSuccess } = useAuth();
 
   const onSubmit = async (data: LoginFormData) => {
     try {
@@ -42,7 +42,7 @@ export const SignInForm = ({ onSuccess }: { onSuccess: () => void }) => {
 
       const auth = res.data?.login;
       if (auth?.accessToken && auth?.refreshToken) {
-        loginSuccess(auth.accessToken, auth.refreshToken); // ✅ instant update
+        loginSuccess(auth.accessToken, auth.refreshToken);
         onSuccess();
       }
     } catch (err: any) {
