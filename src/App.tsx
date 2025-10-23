@@ -37,7 +37,7 @@ const AppRoutes = () => {
       <Route path="/landing" element={<Landing />} />
       {/* <Route path="/auth/verify-email" element={<VerifyEmail />} /> */}
 
-      Protected routes
+      {/* Protected routes */}
       <Route
         path="/"
         element={
