@@ -34,7 +34,13 @@ export const BottomSheet = ({
   const overlayOpacity = useTransform(y, [0, height], [1, 0]);
 
   useEffect(() => {
-    setHeight(window.innerHeight);
+    const updateHeight = () => setHeight(window.innerHeight);
+    updateHeight();
+    window.addEventListener("resize", updateHeight);
+    return () => window.removeEventListener("resize", updateHeight);
+  }, []);
+
+  useEffect(() => {
     if (open && onOpen) {
       onOpen();
     }
