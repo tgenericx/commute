@@ -1,4 +1,4 @@
-import { BottomSheet, BottomSheetHeader, BottomSheetBody, BottomSheetFooter } from "@/components/bottom-sheet";
+import { BottomSheet, BottomSheetBody, BottomSheetFooter } from "@/components/bottom-sheet";
 import { Button } from "@/components/ui/button";
 import { SignInForm } from "./login.form";
 import { SignUpForm } from "./signup.form";
@@ -11,7 +11,6 @@ export const AuthSheet = () => {
 
   return (
     <BottomSheet open={open} onClose={closeAuth}>
-      <BottomSheetHeader />
 
       <BottomSheetBody>
         {page === "signin" ? (

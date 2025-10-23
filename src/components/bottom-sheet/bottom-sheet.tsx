@@ -1,15 +1,25 @@
 import { BottomSheetContext, type SnapPoint } from "@/contexts/bottom-sheet";
 import { motion, AnimatePresence, useMotionValue, animate, useTransform } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { useHaptics } from "@/hooks/use-haptics";
 
 interface BottomSheetProps {
   open: boolean;
   onClose: () => void;
+  onOpen?: () => void;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
   children: React.ReactNode;
 }
 
-export const BottomSheet = ({ open, onClose, children }: BottomSheetProps) => {
+export const BottomSheet = ({
+  open,
+  onClose,
+  onOpen,
+  onDragStart,
+  onDragEnd,
+  children
+}: BottomSheetProps) => {
   const y = useMotionValue(0);
   const [height, setHeight] = useState(0);
   const { trigger } = useHaptics();
@@ -17,17 +27,20 @@ export const BottomSheet = ({ open, onClose, children }: BottomSheetProps) => {
 
   const SNAP_POINTS = {
     FULL: 0,
-    HALF: 0.6, // 60% of the screen height
+    HALF: 0.6,
     CLOSED: 1,
-  };
+  } as const;
 
   const overlayOpacity = useTransform(y, [0, height], [1, 0]);
 
   useEffect(() => {
     setHeight(window.innerHeight);
-  }, []);
+    if (open && onOpen) {
+      onOpen();
+    }
+  }, [open, onOpen]);
 
-  const snapTo = (point: SnapPoint) => {
+  const snapTo = useCallback((point: SnapPoint) => {
     let target = 0;
     switch (point) {
       case "half":
@@ -41,33 +54,33 @@ export const BottomSheet = ({ open, onClose, children }: BottomSheetProps) => {
         target = SNAP_POINTS.FULL;
     }
 
-    trigger("medium")
+    trigger("medium");
     animate(y, target, { type: "spring", stiffness: 300, damping: 30 });
-  };
+  }, [height, onClose, trigger, y]);
 
-  const handleDragEnd = (_: any, info: any) => {
+  const handleDragEnd = useCallback((_: any, info: any) => {
     const offset = info.offset.y;
     const velocity = info.velocity.y;
-    const threshold = height * 0.25;
+    const currentY = y.get();
 
-    if (offset > threshold || velocity > 800) {
-      trigger("medium")
-      animate(y, height, { type: "spring", stiffness: 300, damping: 30 });
-      setTimeout(onClose, 150);
+    onDragEnd?.();
+
+    if (offset > height * 0.4 || velocity > 1000) {
+      trigger("medium");
+      snapTo("closed");
       return;
     }
 
     const halfPoint = height * SNAP_POINTS.HALF;
-    const current = y.get();
-    const target =
-      Math.abs(current - SNAP_POINTS.FULL * height) <
-        Math.abs(current - halfPoint)
-        ? SNAP_POINTS.FULL * height
-        : halfPoint;
+    const shouldSnapToHalf = Math.abs(currentY - halfPoint) < Math.abs(currentY);
 
-    trigger("medium")
-    animate(y, target, { type: "spring", stiffness: 300, damping: 30 });
-  };
+    trigger("light");
+    snapTo(shouldSnapToHalf ? "half" : "full");
+  }, [height, onDragEnd, snapTo, trigger, y]);
+
+  const handleDragStart = useCallback(() => {
+    onDragStart?.();
+  }, [onDragStart]);
 
   return (
     <BottomSheetContext.Provider value={{ open, onClose, snapTo, y }}>
@@ -82,6 +95,8 @@ export const BottomSheet = ({ open, onClose, children }: BottomSheetProps) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              role="dialog"
+              aria-modal="true"
             />
 
             {/* Sheet */}
@@ -90,8 +105,9 @@ export const BottomSheet = ({ open, onClose, children }: BottomSheetProps) => {
               className="fixed left-0 right-0 bottom-0 z-50 bg-neutral-900 text-white rounded-t-2xl shadow-2xl overflow-hidden"
               style={{ y }}
               drag="y"
-              dragConstraints={{ top: 0, bottom: 0 }}
-              dragElastic={0.2}
+              dragConstraints={{ top: -height * 0.2, bottom: height }}
+              dragElastic={0.1}
+              onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
