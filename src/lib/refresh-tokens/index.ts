@@ -12,43 +12,47 @@ export async function requestTokenRefresh(
     return activeRefresh;
   }
 
-  activeRefresh = (async () => {
-    console.log("🔄 LOG: Starting token refresh...");
+  const promise = (async () => {
+    try {
+      console.log("🔄 LOG: Starting token refresh...");
 
-    const storedRefreshToken =
-      overrideRefreshToken ?? localStorage.getItem("refreshToken");
-    if (!storedRefreshToken) {
-      console.warn("🚫 No refresh token found; aborting refresh.");
-      return null;
+      const storedRefreshToken =
+        overrideRefreshToken ?? localStorage.getItem("refreshToken");
+      if (!storedRefreshToken) {
+        console.warn("🚫 No refresh token found; aborting refresh.");
+        return null;
+      }
+
+      const preferred = await checkBackendHealth();
+      console.log(`🌐 Health check decided: use ${preferred ?? "none"}`);
+
+      if (!preferred) {
+        console.error("❌ Backend unreachable; cannot refresh tokens.");
+        return null;
+      }
+
+      const result =
+        preferred === "client"
+          ? await refreshWithClient(storedRefreshToken)
+          : await refreshWithFetch(storedRefreshToken);
+
+      if (!result?.accessToken) {
+        console.warn(`⚠️ ${preferred} refresh failed, falling back...`);
+        return preferred === "client"
+          ? await refreshWithFetch(storedRefreshToken)
+          : await refreshWithClient(storedRefreshToken);
+      }
+
+      console.log("✅ Token refresh successful via", preferred);
+      return result;
+    } finally {
+      activeRefresh = null;
     }
-
-    const preferred = await checkBackendHealth();
-    console.log(`🌐 Health check decided: use ${preferred ?? "none"}`);
-
-    if (!preferred) {
-      console.error("❌ Backend unreachable; cannot refresh tokens.");
-      return null;
-    }
-
-    const result =
-      preferred === "client"
-        ? await refreshWithClient(storedRefreshToken)
-        : await refreshWithFetch(storedRefreshToken);
-
-    if (!result?.accessToken) {
-      console.warn(`⚠️ ${preferred} refresh failed, falling back...`);
-      return preferred === "client"
-        ? await refreshWithFetch(storedRefreshToken)
-        : await refreshWithClient(storedRefreshToken);
-    }
-
-    console.log("✅ Token refresh successful via", preferred);
-    return result;
   })();
 
-  try {
-    return await activeRefresh;
-  } finally {
+  activeRefresh = promise.finally(() => {
     activeRefresh = null;
-  }
+  });
+
+  return promise;
 }
