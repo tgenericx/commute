@@ -7,11 +7,14 @@ export async function requestTokenRefresh(
 ): Promise<{ accessToken?: string; refreshToken?: string } | null> {
   console.log("🔄 LOG: Starting token refresh...");
 
-  const refreshToken = overrideRefreshToken ?? localStorage.getItem("refreshToken");
-  if (!refreshToken) {
+  const storedRefreshToken = overrideRefreshToken ?? localStorage.getItem("refreshToken");
+  if (!storedRefreshToken) {
     console.warn("🚫 No refresh token found; aborting refresh.");
     return null;
   }
+
+  localStorage.removeItem("accessToken");
+  localStorage.removeItem("refreshToken");
 
   const preferred = await checkBackendHealth();
   console.log(`🌐 Health check decided: use ${preferred ?? "none"}`);
@@ -23,20 +26,16 @@ export async function requestTokenRefresh(
 
   const result =
     preferred === "client"
-      ? await refreshWithClient(refreshToken)
-      : await refreshWithFetch(refreshToken);
+      ? await refreshWithClient(storedRefreshToken)
+      : await refreshWithFetch(storedRefreshToken);
 
-  if (result?.accessToken) {
-    console.log("✅ Token refresh successful via", preferred);
-    return result;
+  if (!result?.accessToken) {
+    console.warn(`⚠️ ${preferred} refresh failed, falling back...`);
+    return preferred === "client"
+      ? await refreshWithFetch(storedRefreshToken)
+      : await refreshWithClient(storedRefreshToken);
   }
 
-  // Fallback attempt
-  if (preferred === "client") {
-    console.warn("⚠️ Apollo Client refresh failed, falling back to fetch...");
-    return await refreshWithFetch(refreshToken);
-  } else {
-    console.warn("⚠️ Fetch refresh failed, falling back to Apollo Client...");
-    return await refreshWithClient(refreshToken);
-  }
+  console.log("✅ Token refresh successful via", preferred);
+  return result;
 }

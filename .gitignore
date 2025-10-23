@@ -30,3 +30,4 @@ src/**/*.generated.tsx
 src/gql/generated/graphql.ts
 src/graphql
 src/**/*.test.tsx
+.vercel
