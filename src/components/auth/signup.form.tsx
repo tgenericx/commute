@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@apollo/client/react";
+import { z } from "zod";
 import { toast } from "sonner";
-import { Loader2, Upload } from "lucide-react";
+import { Loader2 } from "lucide-react";
+import { useAuth } from "@/contexts/auth-context";
 
 import {
   Form,
@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { useUploadMedia } from "@/hooks/useUploadMedia";
+
 import {
   SignupMutation,
   SignupMutationVariables,
@@ -57,80 +57,53 @@ export const SignUpForm: React.FC<SignupFormProps> = ({
   onSuccess,
   switchToLogin,
 }) => {
-  const { uploadMedia, isUploading } = useUploadMedia();
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(undefined);
-
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
     defaultValues: { username: "", email: "", password: "", confirmPassword: "" },
   });
+
+  const { loginSuccess } = useAuth();
 
   const [signup, { loading }] = useMutation<
     SignupMutation,
     SignupMutationVariables
   >(SignupDocument);
 
-  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    try {
-      const [uploaded] = await uploadMedia([file]);
-      setAvatarUrl(uploaded.secureUrl);
-    } catch (err) {
-      console.error(err);
-      toast.error("Avatar upload failed");
-    }
-  };
-
   const onSubmit = async (data: SignupFormData) => {
+    console.log("🚀 Signup started...");
+    console.log("🧾 Form Data:", data);
+
     try {
-      const { data: res } = await signup({
-        variables: { ...data, avatar: avatarUrl },
-      });
+      console.log("📡 Sending signup mutation...");
+      const { data: res } = await signup({ variables: { ...data } });
+
+      console.log("📬 Received response:", res);
 
       if (res?.createUser?.accessToken && res.createUser.refreshToken) {
-        localStorage.setItem("accessToken", res.createUser.accessToken);
-        localStorage.setItem("refreshToken", res.createUser.refreshToken);
-        toast.success("Signup successful!");
+        console.log("🔐 Tokens received:");
+        console.log("   - accessToken:", !!res.createUser.accessToken);
+        console.log("   - refreshToken:", !!res.createUser.refreshToken);
+
+        loginSuccess(res.createUser.accessToken, res.createUser.refreshToken);
+
+        toast.success("🎉 Signup successful!");
+        console.log("✅ Signup completed successfully!");
         onSuccess();
+      } else {
+        console.error("⚠️ Signup failed: No tokens returned", res);
+        toast.error("Signup failed. Please try again.");
       }
     } catch (err) {
-      console.error(err);
-      toast.error("Signup failed. Try again.");
+      console.error("💥 Signup error:", err);
+      toast.error("Signup failed due to an unexpected error.");
+    } finally {
+      console.log("🏁 Signup process finished.");
     }
   };
 
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
-        {/* Avatar Upload */}
-        <div className="relative w-24 h-24 mx-auto rounded-full overflow-hidden bg-neutral-200 mb-4">
-          {avatarUrl ? (
-            <img
-              src={avatarUrl}
-              alt="Avatar"
-              className="w-full h-full object-cover"
-            />
-          ) : (
-            <div className="flex items-center justify-center w-full h-full text-neutral-400">
-              <Upload className="w-6 h-6" />
-            </div>
-          )}
-          <input
-            type="file"
-            accept="image/*"
-            className="absolute inset-0 opacity-0 cursor-pointer"
-            onChange={handleAvatarChange}
-            disabled={isUploading}
-          />
-          {isUploading && (
-            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
-              <Loader2 className="w-6 h-6 animate-spin text-white" />
-            </div>
-          )}
-        </div>
-
         {/* Username */}
         <FormField
           control={form.control}
@@ -211,12 +184,12 @@ export const SignUpForm: React.FC<SignupFormProps> = ({
         />
 
         {/* Submit */}
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={loading || isUploading}
-        >
-          {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : "Create Account"}
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            "Create Account"
+          )}
         </Button>
 
         {/* Switch to Login */}
