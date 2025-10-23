@@ -1,9 +1,14 @@
 import { createContext, useContext } from "react";
+import type { MotionValue } from "framer-motion";
+
+export type SnapPoint = "full" | "half" | "closed";
 
 export interface BottomSheetContextValue {
   open: boolean;
-  onClose: () => void;
+  y: MotionValue<number>;
+  snapTo: (point: SnapPoint) => void;
   onOpen?: () => void;
+  onClose: () => void;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }

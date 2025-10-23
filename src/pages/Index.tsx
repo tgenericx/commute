@@ -1,93 +1,58 @@
-import { useEffect, useMemo, useRef, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { useQuery } from '@apollo/client/react';
-
+import { useEffect, useRef, useCallback, useMemo } from "react";
+import { motion } from "framer-motion";
+import { useQuery } from "@apollo/client/react";
+import Navbar from "@/components/Navbar";
+import FloatingActionButton from "@/components/FloatingActionButton";
+import PostCard from "@/components/post/post-card";
 import {
   FeedPostsDocument,
+  Post,
   type FeedPostsQuery,
   type FeedPostsQueryVariables,
-  UpcomingEventsDocument,
-  type UpcomingEventsQuery,
-  type UpcomingEventsQueryVariables,
-  MarketplaceListingsDocument,
-  type MarketplaceListingsQuery,
-  type MarketplaceListingsQueryVariables,
-  MarketplaceInventoriesDocument,
-  type MarketplaceInventoriesQuery,
-  type MarketplaceInventoriesQueryVariables,
-} from '../graphql/graphql';
+} from "@/graphql/graphql";
+import { AdaptedPost, adaptPost } from "@/components/post";
 
-import Navbar from '../components/Navbar';
-import PostCard from '../components/PostCard';
-import EventCard from '../components/EventCard';
-import ProductCard from '../components/ProductCard';
-import ListingCard from '../components/ListingCard';
-import FloatingActionButton from '../components/FloatingActionButton';
-
-// Simple skeleton loader
-const Skeleton = ({ className = '' }: { className?: string }) => (
+const Skeleton = ({ className = "" }: { className?: string }) => (
   <div className={`animate-pulse bg-muted rounded ${className}`} />
 );
 
-// Carousel stubs
-const Carousel = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex gap-4 overflow-x-auto py-2">{children}</div>
-);
-const CarouselContent = ({ children }: { children: React.ReactNode }) => <>{children}</>;
-const CarouselItem = ({ children }: { children: React.ReactNode }) => (
-  <div className="flex-shrink-0">{children}</div>
-);
+// Debounce hook for preventing rapid consecutive calls
+const useDebouncedCallback = (callback: () => void, delay: number) => {
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null); // Fixed: added null as initial value
+
+  return useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(callback, delay);
+  }, [callback, delay]);
+};
 
 const Index = () => {
   const observerRef = useRef<HTMLDivElement | null>(null);
 
-  // Feed posts
-  const {
-    data: postsData,
-    loading: postsLoading,
-    fetchMore,
-    error: postsError,
-  } = useQuery<FeedPostsQuery, FeedPostsQueryVariables>(FeedPostsDocument, {
+  const { data, loading, error, fetchMore, refetch } = useQuery<
+    FeedPostsQuery,
+    FeedPostsQueryVariables
+  >(FeedPostsDocument, {
     variables: { limit: 10 },
     notifyOnNetworkStatusChange: true,
   });
 
-  // Upcoming events
-  const {
-    data: eventsData,
-    error: eventsError,
-  } = useQuery<UpcomingEventsQuery, UpcomingEventsQueryVariables>(UpcomingEventsDocument, {
-    variables: { take: 5 },
-  });
-
-  // Marketplace listings
-  const {
-    data: listingsData,
-    error: listingsError,
-  } = useQuery<MarketplaceListingsQuery, MarketplaceListingsQueryVariables>(
-    MarketplaceListingsDocument,
-    { variables: { take: 5 } }
-  );
-
-  // Inventories
-  const {
-    data: inventoriesData,
-    error: inventoriesError,
-  } = useQuery<MarketplaceInventoriesQuery, MarketplaceInventoriesQueryVariables>(
-    MarketplaceInventoriesDocument,
-    { variables: { take: 5 } }
-  );
-
   useEffect(() => {
-    const errors = [postsError, eventsError, listingsError, inventoriesError];
-    if (errors.some(Boolean)) console.warn('Some queries failed', errors);
-  }, [postsError, eventsError, listingsError, inventoriesError]);
+    if (error) console.warn("Feed posts query failed:", error);
+  }, [error]);
 
-  const posts = postsData?.feedPosts?.items ?? [];
-  const pageInfo = postsData?.feedPosts?.pageInfo;
+  // Memoize posts transformation
+  const posts: AdaptedPost[] = useMemo(() => {
+    return (data?.feedPosts?.items ?? [])
+      .filter((p): p is NonNullable<typeof p> => p != null)
+      .map((p) => adaptPost(p as unknown as Post))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }, [data?.feedPosts?.items]);
+
+  const pageInfo = data?.feedPosts?.pageInfo;
 
   const handleLoadMore = useCallback(() => {
-    if (pageInfo?.hasNextPage && fetchMore) {
+    if (pageInfo?.hasNextPage && fetchMore && !loading) {
       fetchMore({
         variables: { after: pageInfo.endCursor, limit: 10 },
         updateQuery: (prev, { fetchMoreResult }) => {
@@ -101,104 +66,112 @@ const Index = () => {
         },
       });
     }
-  }, [pageInfo, fetchMore]);
+  }, [pageInfo, fetchMore, loading]);
 
+  // Debounced load more to prevent rapid consecutive calls
+  const debouncedLoadMore = useDebouncedCallback(handleLoadMore, 300);
+
+  // Optimized intersection observer
   useEffect(() => {
+    if (!pageInfo?.hasNextPage || loading) return;
+
     const observer = new IntersectionObserver(
-      (entries) => entries[0].isIntersecting && handleLoadMore(),
-      { threshold: 0.5 }
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          debouncedLoadMore();
+        }
+      },
+      { threshold: 0.1 } // Lower threshold for earlier loading
     );
-    if (observerRef.current) observer.observe(observerRef.current);
-    return () => observer.disconnect();
-  }, [handleLoadMore]);
 
-  // Randomized insertion points
-  const { eventInsertIndex, marketInsertIndex } = useMemo(() => {
-    const len = posts.length;
-    const eventInsertIndex = Math.floor(Math.random() * (len - 5)) + 3;
-    const marketInsertIndex = Math.min(len - 1, eventInsertIndex + 4 + Math.floor(Math.random() * 3));
-    return { eventInsertIndex, marketInsertIndex };
-  }, [posts.length]);
+    const currentRef = observerRef.current;
+    if (currentRef) observer.observe(currentRef);
 
-  const upcomingEvents = eventsData?.events ?? [];
-  const marketplaceItems = [
-    ...(listingsData?.listings ?? []),
-    ...(inventoriesData?.inventories ?? []),
-  ];
+    return () => {
+      if (currentRef) observer.unobserve(currentRef);
+    };
+  }, [debouncedLoadMore, pageInfo?.hasNextPage, loading]);
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors">
       <Navbar />
 
       <div className="max-w-3xl mx-auto p-4 mt-8 space-y-8">
-
-        {/* Loading skeleton */}
-        {postsLoading && !posts.length ? (
-          Array.from({ length: 3 }).map((_, i) => (
-            <div
-              key={i}
-              className="bg-card rounded-lg p-4 shadow-sm space-y-2"
+        {/* Error State */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-destructive/10 border border-destructive rounded-lg p-4"
+          >
+            <p className="text-destructive mb-2">Failed to load posts</p>
+            <button
+              onClick={() => refetch()}
+              className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors"
             >
-              <Skeleton className="h-3 w-1/2" />
-              <Skeleton className="h-4 w-4/5" />
-            </div>
-          ))
-        ) : (
-          posts.map((post, index) => (
-            <div key={post.id} className="space-y-4">
-              <PostCard post={post} />
-
-              {/* Events block */}
-              {index === eventInsertIndex && upcomingEvents.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                  viewport={{ once: true }}
-                  className="bg-card rounded-lg p-4 shadow-md"
-                >
-                  <Carousel>
-                    <CarouselContent>
-                      {upcomingEvents.map((event) => (
-                        <CarouselItem key={event.id}>
-                          <EventCard event={event} />
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
-                </motion.div>
-              )}
-
-              {/* Marketplace block */}
-              {index === marketInsertIndex && marketplaceItems.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, y: 40 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, ease: 'easeOut' }}
-                  viewport={{ once: true }}
-                  className="bg-card rounded-lg p-4 shadow-md"
-                >
-                  <Carousel>
-                    <CarouselContent>
-                      {marketplaceItems.map((item) => (
-                        <CarouselItem key={item.id}>
-                          {'stock' in item ? (
-                            <ProductCard product={item} />
-                          ) : (
-                            <ListingCard listing={item} />
-                          )}
-                        </CarouselItem>
-                      ))}
-                    </CarouselContent>
-                  </Carousel>
-                </motion.div>
-              )}
-            </div>
-          ))
+              Try Again
+            </button>
+          </motion.div>
         )}
 
-        {/* Infinite scroll loader */}
-        {pageInfo?.hasNextPage && (
+        {/* Empty State */}
+        {!loading && posts.length === 0 && !error && (
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-12 text-muted-foreground"
+          >
+            <div className="text-lg mb-2">No posts yet</div>
+            <div className="text-sm">Be the first to create one!</div>
+          </motion.div>
+        )}
+
+        {/* Loading Skeletons - Initial Load */}
+        {loading && !posts.length && !error && (
+          <>
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="bg-card rounded-lg p-4 shadow-sm space-y-3">
+                <div className="flex items-center space-x-3">
+                  <Skeleton className="h-8 w-8 rounded-full" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <Skeleton className="h-4 w-4/5" />
+                <Skeleton className="h-3 w-3/4" />
+                <Skeleton className="h-48 w-full rounded" />
+              </div>
+            ))}
+          </>
+        )}
+
+        {/* Posts List */}
+        {posts.map((post) => (
+          <motion.div
+            key={post.id}
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: "easeOut" }}
+            viewport={{ once: true, margin: "50px" }}
+          >
+            <PostCard post={post} />
+          </motion.div>
+        ))}
+
+        {/* Pagination Loading Indicator */}
+        {loading && posts.length > 0 && (
+          <div className="flex justify-center py-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="flex items-center space-x-2 text-muted-foreground"
+            >
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-primary"></div>
+              <span>Loading more posts...</span>
+            </motion.div>
+          </div>
+        )}
+
+        {/* Infinite Scroll Loader */}
+        {pageInfo?.hasNextPage && !loading && (
           <div
             ref={observerRef}
             className="flex justify-center py-8 text-muted-foreground text-sm"
@@ -206,11 +179,22 @@ const Index = () => {
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, ease: 'easeOut' }}
+              transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              Loading more posts...
+              Scroll to load more
             </motion.div>
           </div>
+        )}
+
+        {/* End of Feed Message */}
+        {!pageInfo?.hasNextPage && posts.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-8 text-muted-foreground text-sm"
+          >
+            You've reached the end of the feed
+          </motion.div>
         )}
       </div>
 
