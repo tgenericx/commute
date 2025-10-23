@@ -13,9 +13,6 @@ export async function requestTokenRefresh(
     return null;
   }
 
-  localStorage.removeItem("accessToken");
-  localStorage.removeItem("refreshToken");
-
   const preferred = await checkBackendHealth();
   console.log(`🌐 Health check decided: use ${preferred ?? "none"}`);
 
