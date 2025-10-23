@@ -43,6 +43,7 @@ export const SignInForm = ({ onSuccess }: { onSuccess: () => void }) => {
       const auth = res.data?.login;
       if (auth?.accessToken && auth?.refreshToken) {
         loginSuccess(auth.accessToken, auth.refreshToken);
+        toast.success("Welcome back!");
         onSuccess();
       }
     } catch (err: any) {

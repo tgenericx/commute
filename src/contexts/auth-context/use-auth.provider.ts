@@ -125,7 +125,6 @@ export function useAuthProvider(): AuthContextType {
         console.warn("🔑 LOG WARNING: apolloClient.resetStore failed", err);
       }
 
-      toast.success("Welcome back!");
       if (redirectPath) {
         navigate(redirectPath);
         setRedirectPath(null);
