@@ -1,41 +1,41 @@
 import React from "react";
-import { Media, ResourceType } from "@/graphql/graphql";
+import { ResourceType } from "@/graphql/graphql";
+import { MediaThumbnailProps } from "./types";
+import { cn } from "@/lib/utils";
 
-export type MiniMediaData = Pick<Media, "id" | "secureUrl" | "resourceType">;
-type MediaThumbnailProps = MiniMediaData & {
-  className?: string;
-  onClick?: () => void;
-};
-
-const MediaThumbnail: React.FC<MediaThumbnailProps> = ({
-  id,
-  secureUrl,
-  resourceType = ResourceType.Image,
-  className = "",
+export const MediaThumbnail: React.FC<MediaThumbnailProps> = ({
+  media,
+  className,
+  rounded = true,
+  autoplay = false,
+  controls = true,
   onClick,
-}) => {
-  if (!secureUrl) return null;
+}: MediaThumbnailProps) => {
+  if (!media) return null;
 
-  if (resourceType === ResourceType.Video) {
+  const radius = rounded ? "rounded-2xl" : "";
+
+  if (media.resourceType === ResourceType.Video) {
     return (
       <video
-        id={id}
-        src={secureUrl}
-        controls
+        src={media.playbackUrl || media.secureUrl}
+        controls={controls}
+        autoPlay={autoplay}
+        loop
+        playsInline
         onClick={onClick}
-        className={`rounded-lg w-full object-cover max-h-64 ${className}`}
+        className={cn("w-full aspect-video", radius, className)}
       />
     );
   }
 
   return (
     <img
-      id={id}
-      src={secureUrl}
-      alt={resourceType}
-      onClick={onClick}
-      className={`rounded-lg w-full object-cover max-h-64 ${className}`}
+      src={media.secureUrl}
+      alt={media.format ?? "Media"}
       loading="lazy"
+      onClick={onClick}
+      className={cn("w-full h-auto object-cover", radius, className)}
     />
   );
 };

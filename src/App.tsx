@@ -15,6 +15,8 @@ import { Toaster } from "./components/ui/sonner";
 import { ThemeProvider } from "./contexts/theme-provider";
 import { AuthSheetProvider } from "./contexts/auth-sheet";
 import { AuthSheet } from "./components/auth";
+import { MediaLightboxProvider } from "./contexts/media-lightbox";
+import MediaLightbox from "./components/media/lightbox";
 
 
 
@@ -105,10 +107,13 @@ const App = () => (
       <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
         <Toaster />
         <AuthSheetProvider>
-          <AuthProvider>
-            <AuthSheet />
-            <AppRoutes />
-          </AuthProvider>
+          <MediaLightboxProvider>
+            <AuthProvider>
+              <AuthSheet />
+              <MediaLightbox />
+              <AppRoutes />
+            </AuthProvider>
+          </MediaLightboxProvider>
         </AuthSheetProvider>
       </ThemeProvider>
     </BrowserRouter>

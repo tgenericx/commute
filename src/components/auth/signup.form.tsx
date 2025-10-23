@@ -16,15 +16,12 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { MiniMediaData } from "@/components/media";
 import { useUploadMedia } from "@/hooks/useUploadMedia";
 import {
   SignupMutation,
   SignupMutationVariables,
   SignupDocument,
-  ResourceType,
 } from "@/graphql/graphql";
-import MediaThumbnail from "../media/thumbnail";
 
 const signupSchema = z
   .object({
@@ -86,14 +83,6 @@ export const SignUpForm: React.FC<SignupFormProps> = ({
     }
   };
 
-  const avatarMini: MiniMediaData | null = avatarUrl
-    ? {
-      id: "avatar",
-      secureUrl: avatarUrl,
-      resourceType: ResourceType.Image,
-    }
-    : null;
-
   const onSubmit = async (data: SignupFormData) => {
     try {
       const { data: res } = await signup({
@@ -117,9 +106,10 @@ export const SignUpForm: React.FC<SignupFormProps> = ({
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
         {/* Avatar Upload */}
         <div className="relative w-24 h-24 mx-auto rounded-full overflow-hidden bg-neutral-200 mb-4">
-          {avatarMini ? (
-            <MediaThumbnail
-              {...avatarMini}
+          {avatarUrl ? (
+            <img
+              src={avatarUrl}
+              alt="Avatar"
               className="w-full h-full object-cover"
             />
           ) : (

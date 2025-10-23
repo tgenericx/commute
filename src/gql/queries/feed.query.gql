@@ -1,12 +1,18 @@
 query FeedPosts($after: String, $limit: Int) {
-  feedPosts(after: $after, limit: $limit) {
+  feedPosts(
+    after: $after, limit: $limit
+  ) {
     items {
       id
       textContent
       createdAt
+      _count {
+        replies
+      }
       author {
         id
         username
+        name
         avatar
       }
       postMedia {
@@ -14,12 +20,20 @@ query FeedPosts($after: String, $limit: Int) {
           id
           secureUrl
           resourceType
+          format
+          duration
+          playbackUrl
+          width
+          height
+          eager
         }
       }
     }
     pageInfo {
+      # startCursor
       endCursor
       hasNextPage
+      # hasPreviousPage
     }
   }
 }
