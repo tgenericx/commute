@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ResourceType } from "@/graphql/graphql";
 import { useMediaLightbox } from "@/contexts/media-lightbox";
-import { BottomSheet, BottomSheetHeader, BottomSheetBody } from "@/components/bottom-sheet";
+import { BottomSheet, BottomSheetBody } from "@/components/bottom-sheet";
 
 const MediaLightbox: React.FC = () => {
   const { isOpen, close, mediaList, startIndex } = useMediaLightbox();
@@ -44,7 +44,6 @@ const MediaLightbox: React.FC = () => {
 
   return (
     <BottomSheet open={isOpen} onClose={close}>
-      <BottomSheetHeader />
 
       <BottomSheetBody>
         <div className="relative flex flex-col items-center justify-center space-y-4">
