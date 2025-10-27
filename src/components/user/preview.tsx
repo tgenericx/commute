@@ -42,19 +42,7 @@ export const UserPreviewSheet: FC<UserPreviewSheetProps> = ({
       <BottomSheetBody>
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <Avatar className="h-16 w-16 border-2 border-background">
-            {avatar ? (
-              <AvatarImage
-                src={avatar}
-                alt={name || username}
-                className="object-cover"
-              />
-            ) : (
-              <AvatarFallback className="bg-muted">
-                <User className="h-4 w-4" />
-              </AvatarFallback>
-            )}
-          </Avatar>
+          <UserAvatar user={user} size={64} as="div" />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
