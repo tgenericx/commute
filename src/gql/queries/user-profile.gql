@@ -1,0 +1,40 @@
+query GetUserProfile($username: String, $id: String) {
+  user(where: { username: $username, id: $id }) {
+    id
+    name
+    username
+    avatar
+    bio
+    _count {
+      followers
+      following
+      posts
+    }
+    campusProfile {
+      department {
+        name
+        code
+      }
+      faculty {
+        name
+      }
+      level
+    }
+    posts {
+      id
+      textContent
+      postMedia {
+        media {
+          id
+          secureUrl
+          playbackUrl
+          resourceType
+          format
+          width
+          height
+        }
+      }
+      createdAt
+    }
+  }
+}

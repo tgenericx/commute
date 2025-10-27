@@ -9,10 +9,7 @@ import { Button } from "../ui/button";
 
 export interface UserAvatarProps {
   /** GraphQL User object */
-  user: Pick<
-    User,
-    "id" | "name" | "username" | "avatar" | "bio" | "_count" | "campusProfile"
-  >;
+  user: Pick<User, "id" | "name" | "username" | "avatar">;
 
   /** Size of the avatar (default: "md") */
   size?: "sm" | "md" | "lg" | number;
@@ -63,7 +60,7 @@ export function UserAvatar({
     if (viewMode === "navigate") {
       navigate(`/profile/${username}`);
     } else {
-      openSheet(user);
+      openSheet({ id: user.id });
     }
   };
 
