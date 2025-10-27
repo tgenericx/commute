@@ -5,9 +5,11 @@ import {
   BottomSheetFooter,
 } from "@/components/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { useUserPreviewSheet } from "@/contexts/user-preview-sheet";
 import { UserAvatar } from "./avatar";
+import { useQuery } from "@apollo/client/react";
+import { GetUserProfileDocument } from "@/graphql/graphql";
 
 interface UserPreviewSheetProps {
   onFollow?: (userId: string) => void;
@@ -18,9 +20,40 @@ export const UserPreviewSheet: FC<UserPreviewSheetProps> = ({
   onFollow,
   onViewProfile,
 }) => {
-  const { open, user, closeSheet } = useUserPreviewSheet();
+  const { open, userRef, closeSheet } = useUserPreviewSheet();
 
-  if (!user) return null;
+  const { data, loading, error } = useQuery(GetUserProfileDocument, {
+    variables: { username: userRef?.username ?? "" },
+    skip: !userRef?.username && !userRef?.id,
+  });
+
+  if (!open) return null;
+
+  if (loading)
+    return (
+      <BottomSheet open={open} onClose={closeSheet}>
+        <div className="flex justify-center py-10">
+          <Loader2 className="animate-spin w-6 h-6 text-muted-foreground" />
+        </div>
+      </BottomSheet>
+    );
+
+  if (error)
+    return (
+      <BottomSheet open={open} onClose={closeSheet}>
+        <div className="py-8 text-center text-red-500">{error.message}</div>
+      </BottomSheet>
+    );
+
+  const user = data?.user;
+  if (!user)
+    return (
+      <BottomSheet open={open} onClose={closeSheet}>
+        <div className="py-8 text-center text-muted-foreground">
+          User not found.
+        </div>
+      </BottomSheet>
+    );
 
   const { id, name, username, bio, _count, campusProfile } = user;
   const followers = _count?.followers;
@@ -28,10 +61,7 @@ export const UserPreviewSheet: FC<UserPreviewSheetProps> = ({
   const department = campusProfile?.department?.code;
   const level = campusProfile?.level;
 
-  const handleFollow = () => {
-    onFollow?.(id);
-  };
-
+  const handleFollow = () => onFollow?.(id);
   const handleViewProfile = () => {
     onViewProfile?.(id);
     closeSheet();

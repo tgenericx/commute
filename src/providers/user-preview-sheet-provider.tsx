@@ -13,23 +13,23 @@ export const UserPreviewSheetProvider = ({
 }: UserPreviewSheetProviderProps) => {
   const [state, setState] = useState<{
     open: boolean;
-    user: UserPreviewSheetContextValue["user"];
+    userRef: UserPreviewSheetContextValue["userRef"];
   }>({
     open: false,
-    user: null,
+    userRef: null,
   });
 
-  const openSheet = (user: UserPreviewSheetContextValue["user"]) => {
-    setState({ open: true, user });
+  const openSheet = (ref: { id?: string; username?: string }) => {
+    setState({ open: true, userRef: ref });
   };
 
   const closeSheet = () => {
-    setState({ open: false, user: null });
+    setState({ open: false, userRef: null });
   };
 
   const value: UserPreviewSheetContextValue = {
     open: state.open,
-    user: state.user,
+    userRef: state.userRef,
     openSheet,
     closeSheet,
   };
