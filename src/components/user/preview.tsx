@@ -5,9 +5,9 @@ import {
   BottomSheetFooter,
 } from "@/components/bottom-sheet";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { CheckCircle2, User } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { useUserPreviewSheet } from "@/contexts/user-preview-sheet";
+import { UserAvatar } from "./avatar";
 
 interface UserPreviewSheetProps {
   onFollow?: (userId: string) => void;
@@ -22,7 +22,7 @@ export const UserPreviewSheet: FC<UserPreviewSheetProps> = ({
 
   if (!user) return null;
 
-  const { id, name, username, avatar, bio, _count, campusProfile } = user;
+  const { id, name, username, bio, _count, campusProfile } = user;
   const followers = _count?.followers;
   const posts = _count?.posts;
   const department = campusProfile?.department?.code;
@@ -42,7 +42,7 @@ export const UserPreviewSheet: FC<UserPreviewSheetProps> = ({
       <BottomSheetBody>
         {/* Header */}
         <div className="flex items-center gap-4 mb-6">
-          <UserAvatar user={user} size={64} as="div" />
+          <UserAvatar user={user} size={64} />
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
