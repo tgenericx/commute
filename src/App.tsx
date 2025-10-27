@@ -17,8 +17,8 @@ import { AuthSheetProvider } from "./contexts/auth-sheet";
 import { AuthSheet } from "./components/auth";
 import { MediaLightboxProvider } from "./contexts/media-lightbox";
 import MediaLightbox from "./components/media/lightbox";
-
-
+import { UserPreviewSheetProvider } from "./providers/user-preview-sheet-provider";
+import { UserPreviewSheet } from "./components/user/preview";
 
 const AppRoutes = () => {
   const { isLoadingUser } = useAuth();
@@ -26,7 +26,9 @@ const AppRoutes = () => {
   if (isLoadingUser) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
-        <span className="text-muted-foreground">Checking authentication...</span>
+        <span className="text-muted-foreground">
+          Checking authentication...
+        </span>
       </div>
     );
   }
@@ -102,22 +104,23 @@ const AppRoutes = () => {
 };
 
 const App = () => (
-  <>
-    <BrowserRouter>
-      <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
-        <Toaster />
+  <BrowserRouter>
+    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+      <Toaster />
+      <AuthProvider>
         <AuthSheetProvider>
-          <MediaLightboxProvider>
-            <AuthProvider>
+          <UserPreviewSheetProvider>
+            <MediaLightboxProvider>
               <AuthSheet />
+              <UserPreviewSheet />
               <MediaLightbox />
               <AppRoutes />
-            </AuthProvider>
-          </MediaLightboxProvider>
+            </MediaLightboxProvider>
+          </UserPreviewSheetProvider>
         </AuthSheetProvider>
-      </ThemeProvider>
-    </BrowserRouter>
-  </>
+      </AuthProvider>
+    </ThemeProvider>
+  </BrowserRouter>
 );
 
 export default App;
