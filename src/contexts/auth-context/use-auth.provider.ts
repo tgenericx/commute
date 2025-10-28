@@ -1,12 +1,5 @@
-import {
-  useState,
-  useEffect,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { toast } from "sonner";
-import { useAuthSheet } from "@/contexts/auth-sheet";
 import { useNavigate } from "react-router-dom";
 import { apolloClient } from "@/lib/apolloClient";
 import { initializeAuth } from "./auth.init";
@@ -20,7 +13,6 @@ export function useAuthProvider(): AuthContextType {
   const [user, setUser] = useState<any | null>(null);
   const [redirectPath, setRedirectPath] = useState<string | null>(null);
 
-  const { openAuth } = useAuthSheet();
   const navigate = useNavigate();
 
   // --- Mount status tracking ---
@@ -55,7 +47,7 @@ export function useAuthProvider(): AuthContextType {
         refreshTokenOnceRef.current?.();
       }, timeout);
     },
-    [clearRefreshTimer]
+    [clearRefreshTimer],
   );
 
   // --- decode + set user ---
@@ -91,7 +83,7 @@ export function useAuthProvider(): AuthContextType {
       setIsAuthenticated(true);
       scheduleRefreshAt(decoded.exp);
     },
-    [clearRefreshTimer, scheduleRefreshAt]
+    [clearRefreshTimer, scheduleRefreshAt],
   );
 
   // --- Create refresh manager (stable reference) ---
@@ -102,7 +94,7 @@ export function useAuthProvider(): AuthContextType {
         mountedRef,
         clearRefreshTimer,
       }),
-    [decodeAndSetUser, clearRefreshTimer]
+    [decodeAndSetUser, clearRefreshTimer],
   );
 
   // 🔁 hold refreshTokenOnce in a ref to avoid re-renders in scheduleRefreshAt
@@ -130,7 +122,7 @@ export function useAuthProvider(): AuthContextType {
         setRedirectPath(null);
       }
     },
-    [decodeAndSetUser, navigate, redirectPath]
+    [decodeAndSetUser, navigate, redirectPath],
   );
 
   // --- Logout ---
@@ -142,11 +134,10 @@ export function useAuthProvider(): AuthContextType {
       setIsAuthenticated(false);
       setUser(null);
       clearRefreshTimer();
-      apolloClient.clearStore().catch(() => { });
-      openAuth("signin");
+      apolloClient.clearStore().catch(() => {});
       if (alert) toast.success("You’ve been logged out.");
     },
-    [clearRefreshTimer, openAuth]
+    [clearRefreshTimer],
   );
 
   // --- Handle GraphQL auth errors ---
@@ -173,7 +164,7 @@ export function useAuthProvider(): AuthContextType {
         toast.error(msg);
       }
     },
-    [logout]
+    [logout],
   );
 
   // --- Initialize auth once on mount ---
@@ -211,6 +202,6 @@ export function useAuthProvider(): AuthContextType {
       loginSuccess,
       refreshTokenOnce,
       redirectPath,
-    ]
+    ],
   );
 }
