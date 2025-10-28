@@ -109,8 +109,8 @@ const App = () => (
   <BrowserRouter>
     <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
       <Toaster />
-      <AuthProvider>
-        <AuthSheetProvider>
+      <AuthSheetProvider>
+        <AuthProvider>
           <UserPreviewSheetProvider>
             <MediaLightboxProvider>
               <AuthSheet />
@@ -119,8 +119,8 @@ const App = () => (
               <AppRoutes />
             </MediaLightboxProvider>
           </UserPreviewSheetProvider>
-        </AuthSheetProvider>
-      </AuthProvider>
+        </AuthProvider>
+      </AuthSheetProvider>
     </ThemeProvider>
   </BrowserRouter>
 );
