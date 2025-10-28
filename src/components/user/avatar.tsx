@@ -60,7 +60,7 @@ export function UserAvatar({
     if (viewMode === "navigate") {
       navigate(`/profile/${username}`);
     } else {
-      openSheet({ id: user.id });
+      openSheet(user.id);
     }
   };
 
