@@ -8,7 +8,6 @@ import { Toaster } from "./components/ui/sonner";
 import { ThemeProvider } from "./contexts/theme-provider";
 import { AuthSheet } from "./components/auth";
 import MediaLightbox from "./components/media/lightbox";
-import { UserPreviewSheetProvider } from "./providers/user-preview-sheet-provider";
 import { UserPreviewSheet } from "./components/user/preview";
 import UserProfilePage from "./pages/profile/[id]";
 import { SheetManagerProvider } from "./contexts/sheet-manager";
@@ -51,12 +50,10 @@ const App = () => (
       <Toaster />
       <AuthProvider>
         <SheetManagerProvider>
-          <UserPreviewSheetProvider>
-            <AuthSheet />
-            <MediaLightbox />
-            <UserPreviewSheet />
-            <AppRoutes />
-          </UserPreviewSheetProvider>
+          <AuthSheet />
+          <MediaLightbox />
+          <UserPreviewSheet />
+          <AppRoutes />
         </SheetManagerProvider>
       </AuthProvider>
     </ThemeProvider>

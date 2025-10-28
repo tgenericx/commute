@@ -1,40 +1,38 @@
 import { FC } from "react";
-import {
-  BottomSheet,
-  BottomSheetBody,
-  BottomSheetFooter,
-} from "@/components/bottom-sheet";
+import { useQuery } from "@apollo/client/react";
+import { CheckCircle2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle2 } from "lucide-react";
-import { useUserPreviewSheet } from "@/contexts/user-preview-sheet";
 import { UserAvatar } from "./avatar";
-import { Loader2 } from "lucide-react";
+import { GetUserProfileDocument } from "@/graphql/graphql";
+import { useRegisterSheet } from "@/hooks/use-register-sheet";
 
 export const UserPreviewSheet: FC = () => {
-  const { open, user, closeSheet, loading } = useUserPreviewSheet();
+  useRegisterSheet("user-preview", ({ data, close }) => {
+    const userId = data?.id as string | undefined;
 
-  if (!open) return null;
+    const { data: queryData, loading } = useQuery(GetUserProfileDocument, {
+      variables: { id: userId || "" },
+      skip: !userId,
+    });
 
-  if (loading)
-    return (
-      <BottomSheet open={open} onClose={closeSheet}>
+    const user = queryData?.user;
+    const { name, username, bio, _count, campusProfile } = user ?? {};
+    const followers = _count?.followers;
+    const posts = _count?.posts;
+    const department = campusProfile?.department?.code;
+    const level = campusProfile?.level;
+
+    if (loading)
+      return (
         <div className="flex justify-center items-center py-10">
           <Loader2 className="animate-spin h-6 w-6 text-muted-foreground" />
         </div>
-      </BottomSheet>
-    );
+      );
 
-  if (!user) return null;
+    if (!user) return null;
 
-  const { name, username, bio, _count, campusProfile } = user;
-  const followers = _count?.followers;
-  const posts = _count?.posts;
-  const department = campusProfile?.department?.code;
-  const level = campusProfile?.level;
-
-  return (
-    <BottomSheet open={open} onClose={closeSheet}>
-      <BottomSheetBody>
+    return (
+      <div className="p-6">
         <div className="flex items-center gap-4 mb-6">
           <UserAvatar user={user} size={64} />
 
@@ -86,9 +84,7 @@ export const UserPreviewSheet: FC = () => {
             )}
           </div>
         )}
-      </BottomSheetBody>
 
-      <BottomSheetFooter>
         <div className="flex gap-3">
           <Button variant="default" size="sm" className="flex-1">
             Follow
@@ -97,12 +93,14 @@ export const UserPreviewSheet: FC = () => {
             variant="outline"
             size="sm"
             className="flex-1"
-            onClick={closeSheet}
+            onClick={close}
           >
             View Profile
           </Button>
         </div>
-      </BottomSheetFooter>
-    </BottomSheet>
-  );
+      </div>
+    );
+  });
+
+  return null;
 };
