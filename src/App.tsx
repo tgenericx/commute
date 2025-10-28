@@ -19,6 +19,7 @@ import { MediaLightboxProvider } from "./contexts/media-lightbox";
 import MediaLightbox from "./components/media/lightbox";
 import { UserPreviewSheetProvider } from "./providers/user-preview-sheet-provider";
 import { UserPreviewSheet } from "./components/user/preview";
+import UserProfilePage from "./pages/profile/[id]";
 
 const AppRoutes = () => {
   const { isLoadingUser } = useAuth();
@@ -37,6 +38,7 @@ const AppRoutes = () => {
     <Routes>
       {/* Public routes */}
       <Route path="/landing" element={<Landing />} />
+      <Route path="/user/:username" element={<UserProfilePage />} />
       {/* <Route path="/auth/verify-email" element={<VerifyEmail />} /> */}
 
       {/* Protected routes */}

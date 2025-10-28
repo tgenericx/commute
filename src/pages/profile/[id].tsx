@@ -6,11 +6,11 @@ import { Loader2 } from "lucide-react";
 import { UserAvatar } from "@/components/user/avatar";
 
 export default function UserProfilePage() {
-  const { username } = useParams<{ username: string }>();
+  const { id } = useParams<{ id: string }>();
 
   const { data, loading, error } = useQuery(GetUserProfileDocument, {
-    variables: { username: username! },
-    skip: !username,
+    variables: { id: id! },
+    skip: !id,
   });
 
   if (loading)
