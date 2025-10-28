@@ -1,10 +1,3 @@
-import { useEffect } from "react";
-import {
-  useSheetManager,
-  SheetKey,
-  SheetRenderFn,
-} from "@/contexts/sheet-manager";
-
 import { useEffect, useRef } from "react";
 import {
   useSheetManager,
