@@ -1,4 +1,4 @@
-import { apolloClient } from "../apolloClient";
+import { apolloClient, GRAPHQL_URL } from "../apolloClient";
 import {
   RefreshTokensDocument,
   type RefreshTokensMutation,
@@ -6,18 +6,19 @@ import {
 } from "@/graphql/graphql";
 import { print } from "graphql";
 
-const GRAPHQL_URL = `${import.meta.env.VITE_API_BASE_URL}/api/graphql`;
-
 export async function refreshWithFetch(
   refreshToken: string,
-  retry = 1
+  retry = 1,
 ): Promise<{ accessToken?: string; refreshToken?: string } | null> {
   const body = JSON.stringify({
     query: print(RefreshTokensDocument),
     variables: { refreshToken } as RefreshTokensMutationVariables,
   });
 
-  const attempt = async (): Promise<{ accessToken?: string; refreshToken?: string } | null> => {
+  const attempt = async (): Promise<{
+    accessToken?: string;
+    refreshToken?: string;
+  } | null> => {
     try {
       const resp = await fetch(GRAPHQL_URL, {
         method: "POST",
@@ -25,7 +26,11 @@ export async function refreshWithFetch(
       });
 
       if (!resp.ok) {
-        console.error("❌ Fetch refresh HTTP error", resp.status, resp.statusText);
+        console.error(
+          "❌ Fetch refresh HTTP error",
+          resp.status,
+          resp.statusText,
+        );
         return null;
       }
 
@@ -49,7 +54,8 @@ export async function refreshWithFetch(
       const newRefreshToken = payload.refreshToken ?? undefined;
 
       localStorage.setItem("accessToken", accessToken);
-      if (newRefreshToken) localStorage.setItem("refreshToken", newRefreshToken);
+      if (newRefreshToken)
+        localStorage.setItem("refreshToken", newRefreshToken);
 
       try {
         await apolloClient.resetStore();
