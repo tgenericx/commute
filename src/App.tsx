@@ -1,4 +1,3 @@
-// src/App.tsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import Landing from "./pages/Landing";
@@ -8,7 +7,6 @@ import { RequireAuth } from "./components/RequireAuth";
 import { Toaster } from "./components/ui/sonner";
 import { ThemeProvider } from "./contexts/theme-provider";
 import { AuthSheet } from "./components/auth";
-import { MediaLightboxProvider } from "./contexts/media-lightbox";
 import MediaLightbox from "./components/media/lightbox";
 import { UserPreviewSheetProvider } from "./providers/user-preview-sheet-provider";
 import { UserPreviewSheet } from "./components/user/preview";
@@ -54,12 +52,10 @@ const App = () => (
       <AuthProvider>
         <SheetManagerProvider>
           <UserPreviewSheetProvider>
-            <MediaLightboxProvider>
-              <AuthSheet />
-              <UserPreviewSheet />
-              <MediaLightbox />
-              <AppRoutes />
-            </MediaLightboxProvider>
+            <AuthSheet />
+            <MediaLightbox />
+            <UserPreviewSheet />
+            <AppRoutes />
           </UserPreviewSheetProvider>
         </SheetManagerProvider>
       </AuthProvider>
