@@ -35,7 +35,7 @@ export function UserAvatar({
   viewMode = "preview",
   onClick,
 }: UserAvatarProps) {
-  const { name = "", avatar, username } = user;
+  const { id, name = "", avatar, username } = user;
   const navigate = useNavigate();
   const { openSheet } = useUserPreviewSheet();
 
@@ -58,7 +58,7 @@ export function UserAvatar({
     onClick?.(user);
 
     if (viewMode === "navigate") {
-      navigate(`/profile/${username}`);
+      navigate(`/user/${id}`);
     } else {
       openSheet(user.id);
     }
