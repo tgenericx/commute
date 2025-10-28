@@ -7,8 +7,8 @@ import { GetUserProfileDocument } from "@/graphql/graphql";
 import { useRegisterSheet } from "@/hooks/use-register-sheet";
 
 export const UserPreviewSheet: FC = () => {
-  useRegisterSheet("user-preview", ({ data, close }) => {
-    const userId = data?.id as string | undefined;
+  useRegisterSheet("user-preview", ({ id }) => {
+    const userId = id as string | undefined;
 
     const { data: queryData, loading } = useQuery(GetUserProfileDocument, {
       variables: { id: userId || "" },

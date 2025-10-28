@@ -118,9 +118,15 @@ const MediaLightboxSheetContent: React.FC<MediaLightboxSheetProps> = ({
 };
 
 export const MediaLightboxSheet = () => {
-  useRegisterSheet("mediaLightbox", (props, onClose) => (
-    <MediaLightboxSheetContent {...props} onClose={onClose} />
-  ));
+  useRegisterSheet("media-lightbox", (props, onClose) => {
+    return (
+      <MediaLightboxSheetContent
+        mediaList={props.media}
+        startIndex={props.startIndex}
+        onClose={onClose}
+      />
+    );
+  });
   return null;
 };
 

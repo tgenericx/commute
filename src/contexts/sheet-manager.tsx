@@ -1,16 +1,18 @@
 import React, { createContext, useCallback, useContext, useState } from "react";
 import { BottomSheet } from "@/components/bottom-sheet";
+import type { SheetPropsMap } from "@/types/sheets";
 
-export type SheetKey = string;
-export type SheetRenderFn = (
-  props: any,
+export type SheetKey = keyof SheetPropsMap;
+
+export type SheetRenderFn<K extends SheetKey> = (
+  props: SheetPropsMap[K],
   onClose: () => void,
 ) => React.ReactNode;
 
 interface SheetManagerContextValue {
-  openSheet: (key: SheetKey, props?: any) => void;
+  openSheet: <K extends SheetKey>(key: K, props: SheetPropsMap[K]) => void;
   closeSheet: () => void;
-  registerSheet: (key: SheetKey, render: SheetRenderFn) => void;
+  registerSheet: <K extends SheetKey>(key: K, render: SheetRenderFn<K>) => void;
 }
 
 const SheetManagerContext = createContext<SheetManagerContextValue | null>(
@@ -20,18 +22,27 @@ const SheetManagerContext = createContext<SheetManagerContextValue | null>(
 export const SheetManagerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [registry, setRegistry] = useState<Record<SheetKey, SheetRenderFn>>({});
-  const [active, setActive] = useState<{ key: SheetKey | null; props?: any }>({
-    key: null,
-  });
+  const [registry, setRegistry] = useState<
+    Partial<{ [K in SheetKey]: SheetRenderFn<K> }>
+  >({});
+  const [active, setActive] = useState<{
+    key: SheetKey | null;
+    props?: SheetPropsMap[SheetKey];
+  }>({ key: null });
 
-  const registerSheet = useCallback((key: SheetKey, render: SheetRenderFn) => {
-    setRegistry((prev) => ({ ...prev, [key]: render }));
-  }, []);
+  const registerSheet = useCallback(
+    <K extends SheetKey>(key: K, render: SheetRenderFn<K>) => {
+      setRegistry((prev) => ({ ...prev, [key]: render }));
+    },
+    [],
+  );
 
-  const openSheet = useCallback((key: SheetKey, props?: any) => {
-    setActive({ key, props });
-  }, []);
+  const openSheet = useCallback(
+    <K extends SheetKey>(key: K, props: SheetPropsMap[K]) => {
+      setActive({ key, props });
+    },
+    [],
+  );
 
   const closeSheet = useCallback(() => {
     setActive({ key: null });
@@ -46,7 +57,7 @@ export const SheetManagerProvider: React.FC<{ children: React.ReactNode }> = ({
       {children}
       {Content && (
         <BottomSheet open={!!active.key} onClose={closeSheet}>
-          {Content(active.props, closeSheet)}
+          {Content(active.props as any, closeSheet)}
         </BottomSheet>
       )}
     </SheetManagerContext.Provider>
