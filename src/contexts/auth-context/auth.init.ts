@@ -19,8 +19,10 @@ export async function initializeAuth({
 
   console.log("🔍 LOG: Checking backend health before auth initialization...");
   const backendHealth = await checkBackendHealth();
-
-  if (!backendHealth) {
+  if (backendHealth) {
+    localStorage.setItem("backend_preferred", backendHealth);
+  } else {
+    localStorage.removeItem("backend_preferred");
     console.error(
       "❌ LOG: Backend is unavailable. Skipping auth initialization.",
     );
@@ -28,14 +30,12 @@ export async function initializeAuth({
     setUser(null);
     setIsLoadingUser(false);
 
-    localStorage.setItem("backend_available", "false");
     return;
   }
 
   console.log(
     "✅ LOG: Backend is healthy. Proceeding with auth initialization.",
   );
-  localStorage.setItem("backend_available", "true");
 
   const token = localStorage.getItem("accessToken");
 
