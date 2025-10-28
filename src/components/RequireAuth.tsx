@@ -1,12 +1,12 @@
 import { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/contexts/auth-context";
-import { useAuthSheet } from "@/contexts/auth-sheet";
 import { useLocation } from "react-router-dom";
+import { useSheetManager } from "@/contexts/sheet-manager";
 
 export const RequireAuth = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, isLoadingUser, setRedirectPath } = useAuth();
-  const { openAuth } = useAuthSheet();
+  const { openSheet } = useSheetManager();
   const location = useLocation();
 
   useEffect(() => {
@@ -14,11 +14,19 @@ export const RequireAuth = ({ children }: { children: React.ReactNode }) => {
     // open the sign-in UI and store the redirect path. Token refresh is
     // handled entirely inside the AuthContext (AuthProvider).
     if (!isLoadingUser && !isAuthenticated) {
-      console.log(`🔒 GUARD LOG: User unauthenticated; opening signin for path ${location.pathname}`);
+      console.log(
+        `🔒 GUARD LOG: User unauthenticated; opening signin for path ${location.pathname}`,
+      );
       setRedirectPath(location.pathname);
-      openAuth("signin");
+      openSheet("auth", { page: "signin" });
     }
-  }, [isLoadingUser, isAuthenticated, location.pathname, setRedirectPath, openAuth]);
+  }, [
+    isLoadingUser,
+    isAuthenticated,
+    location.pathname,
+    setRedirectPath,
+    openSheet,
+  ]);
 
   return (
     <div className="relative min-h-screen w-full flex items-center justify-center">
