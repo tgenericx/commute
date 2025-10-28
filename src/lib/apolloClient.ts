@@ -25,13 +25,13 @@ export const GRAPHQL_URL = `${API}/api/graphql`;
 const httpLink = new HttpLink({
   uri: GRAPHQL_URL,
 });
-
 const authLink = new ApolloLink((operation, forward) => {
   const token = localStorage.getItem("accessToken");
 
   console.log(
     `🔒 LOG: AuthLink executed for operation: ${operation.operationName || "Unnamed"}`,
   );
+  console.log("  Variables:", operation.variables);
 
   operation.setContext(({ headers = {} }) => {
     const authorizationHeader = token ? `Bearer ${token}` : "";
