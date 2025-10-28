@@ -40,8 +40,26 @@ const FloatingActionButton = () => {
         setIsOpen(false);
       }
     };
-    if (isOpen) document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    const handleFocusOut = (e: FocusEvent) => {
+      // If focus moves outside the container, close the menu
+      if (
+        containerRef.current &&
+        !containerRef.current.contains(e.relatedTarget as Node)
+      ) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      document.addEventListener("focusout", handleFocusOut, true);
+    }
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("focusout", handleFocusOut, true);
+    };
   }, [isOpen]);
 
   const blurColor =
@@ -90,6 +108,8 @@ const FloatingActionButton = () => {
       <Button
         size="icon"
         onClick={() => setIsOpen((prev) => !prev)}
+        aria-expanded={isOpen}
+        aria-label={isOpen ? "Close menu" : "Open menu"}
         className={cn(
           "h-14 w-14 rounded-full shadow-lg transition-all duration-300 flex items-center justify-center",
           "hover:scale-110 active:scale-95",
