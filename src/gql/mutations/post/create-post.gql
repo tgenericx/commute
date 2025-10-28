@@ -1,0 +1,8 @@
+mutation CreatePost($data: PostCreateInput!) {
+  createPost(data: $data) {
+    id
+    author {
+      id
+    }
+  }
+}
