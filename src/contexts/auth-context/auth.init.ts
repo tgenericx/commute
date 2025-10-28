@@ -18,7 +18,13 @@ export async function initializeAuth({
   console.log("🚀 LOG: AuthProvider init - checking stored access token.");
 
   console.log("🔍 LOG: Checking backend health before auth initialization...");
-  const backendHealth = await checkBackendHealth();
+  let backendHealth: Awaited<ReturnType<typeof checkBackendHealth>> | null = null;
+  try {
+    backendHealth = await checkBackendHealth();
+  } catch (error) {
+    console.error("❌ LOG: Backend health check failed:", error);
+  }
+
   if (backendHealth) {
     localStorage.setItem("backend_preferred", backendHealth);
   } else {
