@@ -27,7 +27,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
 
   const handleOpenLightbox = useCallback(
     (startIndex: number) => {
-      openSheet("media-lightbox", { media, startIndex });
+      openSheet("mediaLightbox", { media, startIndex });
     },
     [openSheet, media],
   );
