@@ -1,9 +1,11 @@
 import { createContext, useContext } from "react";
+import { GetUserProfileQuery } from "@/graphql/graphql";
 
 export interface UserPreviewSheetContextValue {
   open: boolean;
-  userRef: { id?: string; username?: string } | null;
-  openSheet: (ref: { id?: string; username?: string }) => void;
+  user: GetUserProfileQuery["user"] | null;
+  loading?: boolean;
+  openSheet: (userId: string) => void;
   closeSheet: () => void;
 }
 
@@ -13,8 +15,6 @@ export const UserPreviewSheetContext =
 export const useUserPreviewSheet = () => {
   const ctx = useContext(UserPreviewSheetContext);
   if (!ctx)
-    throw new Error(
-      "useUserPreviewSheet must be used within UserPreviewSheetProvider",
-    );
+    throw new Error("useUserPreviewSheet must be used within its Provider");
   return ctx;
 };
