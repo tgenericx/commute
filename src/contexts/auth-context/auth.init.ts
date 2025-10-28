@@ -1,5 +1,6 @@
 import { decodeToken, msUntilExpiry, REFRESH_BUFFER_MS } from "./token.utils";
 import type { DecodedToken } from "./types";
+import { checkBackendHealth } from "@/lib/refresh-tokens";
 
 export async function initializeAuth({
   decodeAndSetUser,
@@ -15,6 +16,33 @@ export async function initializeAuth({
   setIsLoadingUser: (v: boolean) => void;
 }) {
   console.log("🚀 LOG: AuthProvider init - checking stored access token.");
+
+  console.log("🔍 LOG: Checking backend health before auth initialization...");
+  let backendHealth: Awaited<ReturnType<typeof checkBackendHealth>> | null = null;
+  try {
+    backendHealth = await checkBackendHealth();
+  } catch (error) {
+    console.error("❌ LOG: Backend health check failed:", error);
+  }
+
+  if (backendHealth) {
+    localStorage.setItem("backend_preferred", backendHealth);
+  } else {
+    localStorage.removeItem("backend_preferred");
+    console.error(
+      "❌ LOG: Backend is unavailable. Skipping auth initialization.",
+    );
+    setIsAuthenticated(false);
+    setUser(null);
+    setIsLoadingUser(false);
+
+    return;
+  }
+
+  console.log(
+    "✅ LOG: Backend is healthy. Proceeding with auth initialization.",
+  );
+
   const token = localStorage.getItem("accessToken");
 
   if (!token) {
@@ -29,7 +57,9 @@ export async function initializeAuth({
       return;
     }
 
-    console.log(`🔄 LOG: Found refresh token (trimmed): ${refresh.slice(0, 8)}...${refresh.slice(-8)}`);
+    console.log(
+      `🔄 LOG: Found refresh token (trimmed): ${refresh.slice(0, 8)}...${refresh.slice(-8)}`,
+    );
     const decodedRefresh = decodeToken<DecodedToken>(refresh);
     if (!decodedRefresh?.exp) {
       console.log("❌ LOG: Invalid refresh token; no exp claim.");
@@ -40,7 +70,9 @@ export async function initializeAuth({
     }
 
     const msLeft = msUntilExpiry(decodedRefresh.exp);
-    console.log(`🔄 LOG: Refresh token exp=${decodedRefresh.exp}, msLeft=${msLeft}ms`);
+    console.log(
+      `🔄 LOG: Refresh token exp=${decodedRefresh.exp}, msLeft=${msLeft}ms`,
+    );
 
     if (msLeft <= 0) {
       console.log("❌ LOG: Refresh token expired.");
@@ -61,7 +93,9 @@ export async function initializeAuth({
     return;
   }
 
-  console.log(`🚀 LOG: Found access token in storage (trimmed): ${token.slice(0, 8)}...${token.slice(-8)}`);
+  console.log(
+    `🚀 LOG: Found access token in storage (trimmed): ${token.slice(0, 8)}...${token.slice(-8)}`,
+  );
   const decoded = decodeToken<DecodedToken>(token);
   if (!decoded?.exp) {
     console.log("❌ LOG: Access token missing exp; attempting refresh.");

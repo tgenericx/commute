@@ -10,7 +10,18 @@ import {
   CombinedProtocolErrors,
 } from "@apollo/client/errors";
 import { toast } from "sonner";
-export const GRAPHQL_URL = `${import.meta.env.VITE_API_BASE_URL}/api/graphql`;
+
+const API = import.meta.env.VITE_API_BASE_URL;
+
+if (!API) {
+  throw new Error("VITE_API_BASE_URL environment variable is not set");
+}
+
+export { API };
+
+console.log(`🔍 Validating API base URL: ${API}`);
+export const GRAPHQL_URL = `${API}/api/graphql`;
+
 const httpLink = new HttpLink({
   uri: GRAPHQL_URL,
 });

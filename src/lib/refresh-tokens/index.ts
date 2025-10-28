@@ -1,11 +1,14 @@
-import { checkBackendHealth } from "./health-check";
+export { checkBackendHealth } from "./health-check";
 import { refreshWithClient } from "./refresh-with-client";
 import { refreshWithFetch } from "./refresh-with-fetch";
 
-let activeRefresh: Promise<{ accessToken?: string; refreshToken?: string } | null> | null = null;
+let activeRefresh: Promise<{
+  accessToken?: string;
+  refreshToken?: string;
+} | null> | null = null;
 
 export async function requestTokenRefresh(
-  overrideRefreshToken?: string
+  overrideRefreshToken?: string,
 ): Promise<{ accessToken?: string; refreshToken?: string } | null> {
   if (activeRefresh) {
     console.log("⏳ Refresh already in progress; awaiting existing promise...");
@@ -22,13 +25,18 @@ export async function requestTokenRefresh(
       return null;
     }
 
-    const preferred = await checkBackendHealth();
-    console.log(`🌐 Health check decided: use ${preferred ?? "none"}`);
-
+    const preferred = localStorage.getItem("backend_preferred") as
+      | "client"
+      | "fetch"
+      | null;
     if (!preferred) {
-      console.error("❌ Backend unreachable; cannot refresh tokens.");
+      console.error(
+        "❌ Backend unavailable (no preferred method); skipping refresh.",
+      );
       return null;
     }
+
+    console.log(`🌐 Using ${preferred} refresh path.`);
 
     const result =
       preferred === "client"
@@ -37,9 +45,10 @@ export async function requestTokenRefresh(
 
     if (!result?.accessToken) {
       console.warn(`⚠️ ${preferred} refresh failed, falling back...`);
-      return preferred === "client"
-        ? await refreshWithFetch(storedRefreshToken)
-        : await refreshWithClient(storedRefreshToken);
+      const fallback = preferred === "client" ? "fetch" : "client";
+      return fallback === "client"
+        ? await refreshWithClient(storedRefreshToken)
+        : await refreshWithFetch(storedRefreshToken);
     }
 
     console.log("✅ Token refresh successful via", preferred);
