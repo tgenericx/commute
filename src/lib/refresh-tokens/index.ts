@@ -1,11 +1,15 @@
+export { checkBackendHealth } from "./health-check";
 import { checkBackendHealth } from "./health-check";
 import { refreshWithClient } from "./refresh-with-client";
 import { refreshWithFetch } from "./refresh-with-fetch";
 
-let activeRefresh: Promise<{ accessToken?: string; refreshToken?: string } | null> | null = null;
+let activeRefresh: Promise<{
+  accessToken?: string;
+  refreshToken?: string;
+} | null> | null = null;
 
 export async function requestTokenRefresh(
-  overrideRefreshToken?: string
+  overrideRefreshToken?: string,
 ): Promise<{ accessToken?: string; refreshToken?: string } | null> {
   if (activeRefresh) {
     console.log("⏳ Refresh already in progress; awaiting existing promise...");
