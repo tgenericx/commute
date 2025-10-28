@@ -1,8 +1,8 @@
-import React from "react";
+import React, { useCallback } from "react";
 import MediaThumbnail from "./thumbnail";
 import { AdaptedMedia } from "./types";
 import { cn } from "@/lib/utils";
-import { useMediaLightbox } from "@/contexts/media-lightbox";
+import { useSheetManager } from "@/contexts/sheet-manager";
 
 interface MediaGridProps {
   media: AdaptedMedia[];
@@ -11,14 +11,26 @@ interface MediaGridProps {
   bordered?: boolean;
 }
 
-const MediaGrid: React.FC<MediaGridProps> = ({ media, className = "", rounded, bordered }) => {
+const MediaGrid: React.FC<MediaGridProps> = ({
+  media,
+  className = "",
+  rounded,
+  bordered,
+}) => {
   if (!media.length) return null;
 
-  const { open } = useMediaLightbox()
+  const { openSheet } = useSheetManager();
   const radius = rounded ? "rounded-2xl" : "";
   const borderStyle = bordered
     ? "border border-border dark:border-neutral-800"
     : "";
+
+  const handleOpenLightbox = useCallback(
+    (startIndex: number) => {
+      openSheet("media-lightbox", { media, startIndex });
+    },
+    [openSheet, media],
+  );
 
   if (media.length === 1) {
     return (
@@ -27,17 +39,18 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, className = "", rounded, b
           "relative overflow-hidden bg-muted dark:bg-muted/30",
           radius,
           borderStyle,
-          className
+          className,
         )}
       >
         <MediaThumbnail
           media={media[0]}
           className="aspect-square hover:opacity-90 transition-opacity"
-          onClick={() => open(media, 0)}
+          onClick={() => handleOpenLightbox(0)}
         />
       </div>
     );
   }
+
   return (
     <div className="relative">
       <div
@@ -45,7 +58,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, className = "", rounded, b
           "grid grid-cols-2 gap-2 bg-muted/50 dark:bg-muted/20 p-1",
           radius,
           borderStyle,
-          className
+          className,
         )}
       >
         {media.slice(0, 4).map((item, i) => (
@@ -53,7 +66,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({ media, className = "", rounded, b
             <MediaThumbnail
               media={item}
               className="aspect-square hover:opacity-90 transition-opacity"
-              onClick={() => open(media, i)}
+              onClick={() => handleOpenLightbox(i)}
             />
           </div>
         ))}
