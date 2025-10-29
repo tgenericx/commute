@@ -10,7 +10,10 @@ export type SheetRenderFn<K extends SheetKey> = (
 ) => React.ReactNode;
 
 interface SheetManagerContextValue {
-  openSheet: <K extends SheetKey>(key: K, props: SheetPropsMap[K]) => void;
+  openSheet: <K extends SheetKey>(
+    key: K,
+    ...args: SheetPropsMap[K] extends void ? [] : [props: SheetPropsMap[K]]
+  ) => void;
   closeSheet: () => void;
   registerSheet: <K extends SheetKey>(key: K, render: SheetRenderFn<K>) => void;
 }
@@ -38,7 +41,11 @@ export const SheetManagerProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 
   const openSheet = useCallback(
-    <K extends SheetKey>(key: K, props: SheetPropsMap[K]) => {
+    <K extends SheetKey>(
+      key: K,
+      ...args: SheetPropsMap[K] extends void ? [] : [props: SheetPropsMap[K]]
+    ) => {
+      const props = (args[0] ?? undefined) as SheetPropsMap[K];
       setActive({ key, props });
     },
     [],

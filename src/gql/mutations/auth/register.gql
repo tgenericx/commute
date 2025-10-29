@@ -1,15 +1,5 @@
-mutation Signup(
-  $avatar: String,
-  $email: EmailAddress!,
-  $password: String!,
-  $username: String!
-  ) {
-  createUser(data: { 
-    avatar: $avatar,
-    email: $email,
-    password: $password,
-    username: $username
-  }) {
+mutation Signup($data: CreateUserInput!) {
+  createUser(input: $data) {
     accessToken
     refreshToken
   }
