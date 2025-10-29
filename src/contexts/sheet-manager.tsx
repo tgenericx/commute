@@ -15,7 +15,17 @@ interface SheetManagerContextValue {
     ...args: SheetPropsMap[K] extends void ? [] : [props: SheetPropsMap[K]]
   ) => void;
   closeSheet: () => void;
-  registerSheet: <K extends SheetKey>(key: K, render: SheetRenderFn<K>) => void;
+  registerSheet: <K extends SheetKey>(
+    key: K,
+    ...args: SheetPropsMap[K] extends void
+      ? [render: (props: void, onClose: () => void) => React.ReactNode]
+      : [
+          render: (
+            props: SheetPropsMap[K],
+            onClose: () => void,
+          ) => React.ReactNode,
+        ]
+  ) => void;
 }
 
 const SheetManagerContext = createContext<SheetManagerContextValue | null>(
@@ -34,7 +44,18 @@ export const SheetManagerProvider: React.FC<{ children: React.ReactNode }> = ({
   }>({ key: null });
 
   const registerSheet = useCallback(
-    <K extends SheetKey>(key: K, render: SheetRenderFn<K>) => {
+    <K extends SheetKey>(
+      key: K,
+      ...args: SheetPropsMap[K] extends void
+        ? [render: (props: void, onClose: () => void) => React.ReactNode]
+        : [
+            render: (
+              props: SheetPropsMap[K],
+              onClose: () => void,
+            ) => React.ReactNode,
+          ]
+    ) => {
+      const render = args[0];
       setRegistry((prev) => ({ ...prev, [key]: render }));
     },
     [],
