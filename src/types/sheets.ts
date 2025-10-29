@@ -3,6 +3,6 @@ export interface SheetPropsMap {
   "media-lightbox": { media: any[]; startIndex?: number };
   "user-preview": { id: string };
   "create-post": void;
-  "create-event": {};
-  "create-listing": {};
+  "create-event": void;
+  "create-listing": void;
 }

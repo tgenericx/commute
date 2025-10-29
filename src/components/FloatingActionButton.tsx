@@ -4,30 +4,41 @@ import { Plus, PenSquare, Calendar, Package } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/theme-provider";
 import { motion, AnimatePresence } from "framer-motion";
+import { useSheetManager } from "@/contexts/sheet-manager";
 
 const FloatingActionButton = () => {
-  const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const { theme } = useTheme();
+  const [isOpen, setIsOpen] = useState(false);
+  const { openSheet } = useSheetManager();
 
   const actions = [
     {
       icon: PenSquare,
       label: "Create Post",
       color: "bg-primary text-primary-foreground hover:bg-primary/90",
-      onClick: () => setIsOpen(false),
+      onClick: () => {
+        setIsOpen(false);
+        openSheet("create-post");
+      },
     },
     {
       icon: Calendar,
       label: "Create Event",
       color: "bg-accent text-accent-foreground hover:bg-accent/90",
-      onClick: () => setIsOpen(false),
+      onClick: () => {
+        setIsOpen(false);
+        openSheet("create-event");
+      },
     },
     {
       icon: Package,
       label: "List Item",
       color: "bg-secondary text-secondary-foreground hover:bg-secondary/90",
-      onClick: () => setIsOpen(false),
+      onClick: () => {
+        setIsOpen(false);
+        openSheet("create-listing");
+      },
     },
   ];
 
