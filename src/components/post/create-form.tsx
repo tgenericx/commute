@@ -78,7 +78,7 @@ const CreatePostForm = ({
       )}
 
       <div>
-        <Input
+        <textarea
           placeholder="What's on your mind?"
           {...form.register("textContent")}
           disabled={loading}
