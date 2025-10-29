@@ -1,4 +1,3 @@
-// src/components/post/create-form.tsx
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -11,6 +10,7 @@ import {
   CreatePostMutationVariables,
 } from "@/graphql/graphql";
 import { useRegisterSheet } from "@/hooks/use-register-sheet";
+import React from "react";
 
 const schema = z.object({
   textContent: z
@@ -22,7 +22,15 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const CreatePostForm = ({ onClose }: { onClose: () => void }) => {
+const CreatePostForm = ({
+  onClose,
+  parentId,
+  mention,
+}: {
+  onClose: () => void;
+  parentId?: string;
+  mention?: string;
+}) => {
   const [mutate, { loading, error }] = useMutation<
     CreatePostMutation,
     CreatePostMutationVariables
@@ -30,13 +38,30 @@ const CreatePostForm = ({ onClose }: { onClose: () => void }) => {
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { textContent: "" },
+    defaultValues: { textContent: mention ? `@${mention} ` : "" },
     mode: "onSubmit",
   });
 
+  const textareaRef = React.useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    textareaRef.current?.focus();
+    if (mention) {
+      const len = form.getValues("textContent").length;
+      textareaRef.current?.setSelectionRange(len, len);
+    }
+  }, [mention]);
+
   const onSubmit = async (values: FormValues) => {
     try {
-      await mutate({ variables: { data: values } });
+      await mutate({
+        variables: {
+          data: {
+            ...values,
+            parent: parentId ? { connect: { id: parentId } } : undefined,
+          },
+        },
+      });
       form.reset();
       onClose();
     } catch (err) {
@@ -46,11 +71,18 @@ const CreatePostForm = ({ onClose }: { onClose: () => void }) => {
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 p-4">
+      {parentId && mention && (
+        <div className="bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200 px-3 py-1 rounded-md text-sm">
+          Replying to <span className="font-medium">@{mention}</span>
+        </div>
+      )}
+
       <div>
         <Input
           placeholder="What's on your mind?"
           {...form.register("textContent")}
           disabled={loading}
+          ref={textareaRef}
         />
         {form.formState.errors.textContent && (
           <p className="text-sm text-red-500 mt-1">
@@ -66,15 +98,15 @@ const CreatePostForm = ({ onClose }: { onClose: () => void }) => {
       )}
 
       <Button type="submit" disabled={loading} className="w-full">
-        {loading ? "Posting..." : "Create Post"}
+        {loading ? "Posting..." : parentId ? "Reply" : "Create Post"}
       </Button>
     </form>
   );
 };
 
 export const CreatePostSheet = () => {
-  useRegisterSheet("create-post", (_, onClose) => (
-    <CreatePostForm onClose={onClose} />
+  useRegisterSheet("create-post", ({ parentId, mention }, onClose) => (
+    <CreatePostForm onClose={onClose} parentId={parentId} mention={mention} />
   ));
   return null;
 };

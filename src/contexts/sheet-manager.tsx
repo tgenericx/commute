@@ -9,23 +9,15 @@ export type SheetRenderFn<K extends SheetKey> = (
   onClose: () => void,
 ) => React.ReactNode;
 
+type AnySheetRenderFn = (props: any, onClose: () => void) => React.ReactNode;
+
 interface SheetManagerContextValue {
   openSheet: <K extends SheetKey>(
     key: K,
     ...args: SheetPropsMap[K] extends void ? [] : [props: SheetPropsMap[K]]
   ) => void;
   closeSheet: () => void;
-  registerSheet: <K extends SheetKey>(
-    key: K,
-    ...args: SheetPropsMap[K] extends void
-      ? [render: (props: void, onClose: () => void) => React.ReactNode]
-      : [
-          render: (
-            props: SheetPropsMap[K],
-            onClose: () => void,
-          ) => React.ReactNode,
-        ]
-  ) => void;
+  registerSheet: <K extends SheetKey>(key: K, render: SheetRenderFn<K>) => void;
 }
 
 const SheetManagerContext = createContext<SheetManagerContextValue | null>(
@@ -36,7 +28,7 @@ export const SheetManagerProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const [registry, setRegistry] = useState<
-    Partial<{ [K in SheetKey]: SheetRenderFn<K> }>
+    Partial<Record<SheetKey, AnySheetRenderFn>>
   >({});
   const [active, setActive] = useState<{
     key: SheetKey | null;
@@ -44,19 +36,9 @@ export const SheetManagerProvider: React.FC<{ children: React.ReactNode }> = ({
   }>({ key: null });
 
   const registerSheet = useCallback(
-    <K extends SheetKey>(
-      key: K,
-      ...args: SheetPropsMap[K] extends void
-        ? [render: (props: void, onClose: () => void) => React.ReactNode]
-        : [
-            render: (
-              props: SheetPropsMap[K],
-              onClose: () => void,
-            ) => React.ReactNode,
-          ]
-    ) => {
-      const render = args[0];
-      setRegistry((prev) => ({ ...prev, [key]: render }));
+    <K extends SheetKey>(key: K, render: SheetRenderFn<K>) => {
+      // store as any/AnySheetRenderFn internally to avoid complex mapped-type issues
+      setRegistry((prev) => ({ ...prev, [key]: render as AnySheetRenderFn }));
     },
     [],
   );
