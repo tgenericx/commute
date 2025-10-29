@@ -3,6 +3,7 @@ import MediaThumbnail from "./thumbnail";
 import { AdaptedMedia } from "./types";
 import { cn } from "@/lib/utils";
 import { useSheetManager } from "@/contexts/sheet-manager";
+import { AspectRatio } from "../ui/aspect-ratio";
 
 interface MediaGridProps {
   media: AdaptedMedia[];
@@ -17,7 +18,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
   rounded,
   bordered,
 }) => {
-  if (!media.length) return null;
+  if (!media || media.length === 0) return null;
 
   const { openSheet } = useSheetManager();
   const radius = rounded ? "rounded-2xl" : "";
@@ -32,6 +33,7 @@ const MediaGrid: React.FC<MediaGridProps> = ({
     [openSheet, media],
   );
 
+  // For single media: allow click to open media-lightbox, but stop event propagation
   if (media.length === 1) {
     return (
       <div
@@ -45,7 +47,10 @@ const MediaGrid: React.FC<MediaGridProps> = ({
         <MediaThumbnail
           media={media[0]}
           className="aspect-square hover:opacity-90 transition-opacity"
-          onClick={() => handleOpenLightbox(0)}
+          onClick={(e?: React.MouseEvent) => {
+            e?.stopPropagation();
+            handleOpenLightbox(0);
+          }}
         />
       </div>
     );
@@ -62,19 +67,33 @@ const MediaGrid: React.FC<MediaGridProps> = ({
         )}
       >
         {media.slice(0, 4).map((item, i) => (
-          <div key={item.id} className="relative overflow-hidden">
-            <MediaThumbnail
-              media={item}
-              className="aspect-square hover:opacity-90 transition-opacity"
-              onClick={() => handleOpenLightbox(i)}
-            />
-          </div>
+          <AspectRatio key={`${item.secureUrl ?? "media"}-${i}`} ratio={1}>
+            <div className="relative overflow-hidden">
+              <MediaThumbnail
+                media={item}
+                className="aspect-square hover:opacity-90 transition-opacity"
+                onClick={(e?: React.MouseEvent) => {
+                  e?.stopPropagation();
+                  handleOpenLightbox(i);
+                }}
+              />
+            </div>
+          </AspectRatio>
         ))}
 
         {media.length > 4 && (
-          <div className="absolute bottom-2 right-2 bg-background/80 dark:bg-background/60 text-foreground/90 text-xs px-2 py-1 rounded-md">
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleOpenLightbox(4);
+            }}
+            title={`View ${media.length - 4} more media`}
+            aria-label={`View ${media.length - 4} more media`}
+            className="absolute bottom-2 right-2 bg-background/80 dark:bg-background/60 text-foreground/90 text-xs px-2 py-1 rounded-md hover:bg-background/90 transition-colors"
+          >
             +{media.length - 4}
-          </div>
+          </button>
         )}
       </div>
     </div>

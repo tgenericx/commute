@@ -1,5 +1,5 @@
 import { BottomSheetContext, type SnapPoint } from "@/contexts/bottom-sheet";
-import { motion, AnimatePresence, useMotionValue, animate, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useMotionValue, animate, useTransform, useDragControls } from "framer-motion";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useHaptics } from "@/hooks/use-haptics";
 
@@ -24,6 +24,7 @@ export const BottomSheet = ({
   const [height, setHeight] = useState(0);
   const { trigger } = useHaptics();
   const sheetRef = useRef<HTMLDivElement>(null);
+  const dragControls = useDragControls();
 
   const SNAP_POINTS = {
     FULL: 0,
@@ -111,6 +112,7 @@ export const BottomSheet = ({
               className="fixed left-0 right-0 bottom-0 z-50 bg-neutral-900 text-white rounded-t-2xl shadow-2xl overflow-hidden"
               style={{ y }}
               drag="y"
+              dragControls={dragControls}
               dragConstraints={{ top: -height * 0.2, bottom: height }}
               dragElastic={0.1}
               onDragStart={handleDragStart}
@@ -121,7 +123,18 @@ export const BottomSheet = ({
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             >
               {/* Handle */}
-              <div className="flex items-center justify-center py-2">
+              <div
+                className="flex items-center justify-center py-2"
+                // Only start the sheet drag when the handle receives the pointer down.
+                onPointerDown={(e) => {
+                  // forward the pointer event to the drag controls so dragging begins from here
+                  // cast to any because React's PointerEvent differs from the native PointerEvent signature expected by framer-motion
+                  dragControls.start(e as any);
+                }}
+                role="button"
+                tabIndex={0}
+                aria-label="Drag handle"
+              >
                 <div className="w-10 h-1.5 bg-neutral-700 rounded-full" />
               </div>
 
