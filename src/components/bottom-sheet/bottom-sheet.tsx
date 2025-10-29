@@ -131,8 +131,6 @@ export const BottomSheet = ({
                   // cast to any because React's PointerEvent differs from the native PointerEvent signature expected by framer-motion
                   dragControls.start(e as any);
                 }}
-                role="button"
-                tabIndex={0}
                 aria-label="Drag handle"
               >
                 <div className="w-10 h-1.5 bg-neutral-700 rounded-full" />
