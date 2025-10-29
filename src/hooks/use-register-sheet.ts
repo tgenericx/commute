@@ -4,27 +4,24 @@ import {
   SheetKey,
   SheetRenderFn,
 } from "@/contexts/sheet-manager";
+import { SheetProps } from "@/types/sheets";
 
 /**
- * Registers a bottom sheet under a specific key with full type safety.
- *
- * Example:
- *   useRegisterSheet("user-preview", (props, onClose) => (
- *     <UserPreview {...props} onClose={onClose} />
- *   ));
+ * Typed hook to register a sheet with the SheetManager.
  */
 export const useRegisterSheet = <K extends SheetKey>(
   key: K,
   render: SheetRenderFn<K>,
-) => {
+): void => {
   const { registerSheet } = useSheetManager();
   const renderRef = useRef(render);
 
   useEffect(() => {
     renderRef.current = render;
-  }, [render]);
+  });
 
   useEffect(() => {
-    registerSheet(key, (props, onClose) => renderRef.current(props, onClose));
+    registerSheet(key, ((props: SheetProps<K>, onClose: () => void) =>
+      renderRef.current(props as any, onClose)) as SheetRenderFn<K>);
   }, [key, registerSheet]);
 };

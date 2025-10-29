@@ -19,7 +19,7 @@ const FloatingActionButton = () => {
       color: "bg-primary text-primary-foreground hover:bg-primary/90",
       onClick: () => {
         setIsOpen(false);
-        openSheet("create-post");
+        openSheet("create-post", {});
       },
     },
     {
