@@ -42,7 +42,7 @@ const CreatePostForm = ({
     mode: "onSubmit",
   });
 
-  const textareaRef = React.useRef<HTMLInputElement>(null);
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   React.useEffect(() => {
     textareaRef.current?.focus();
