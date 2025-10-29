@@ -11,6 +11,7 @@ import MediaLightbox from "./components/media/lightbox";
 import { UserPreviewSheet } from "./components/user/preview";
 import UserProfilePage from "./pages/profile/[id]";
 import { SheetManagerProvider } from "./contexts/sheet-manager";
+import { CreatePostSheet } from "./components/post/create-form";
 
 const AppRoutes = () => {
   const { isLoadingUser } = useAuth();
@@ -51,6 +52,7 @@ const App = () => (
       <AuthProvider>
         <SheetManagerProvider>
           <AuthSheet />
+          <CreatePostSheet />
           <MediaLightbox />
           <UserPreviewSheet />
           <AppRoutes />

@@ -59,7 +59,12 @@ export const SignUpForm: React.FC<SignupFormProps> = ({
 }) => {
   const form = useForm<SignupFormData>({
     resolver: zodResolver(signupSchema),
-    defaultValues: { username: "", email: "", password: "", confirmPassword: "" },
+    defaultValues: {
+      username: "",
+      email: "",
+      password: "",
+      confirmPassword: "",
+    },
   });
 
   const { loginSuccess } = useAuth();
@@ -75,7 +80,15 @@ export const SignUpForm: React.FC<SignupFormProps> = ({
 
     try {
       console.log("📡 Sending signup mutation...");
-      const { data: res } = await signup({ variables: { ...data } });
+      const { data: res } = await signup({
+        variables: {
+          data: {
+            email: data.email,
+            username: data.username,
+            password: data.password,
+          },
+        },
+      });
 
       console.log("📬 Received response:", res);
 

@@ -1,8 +1,5 @@
 mutation CreateEvent($data: EventCreateInput!) {
   createEvent(data: $data) {
     id
-    createdBy {
-      id
-    }
   }
 }
