@@ -1,5 +1,6 @@
-import { Post, User } from "@/graphql/graphql"
+import { Media, PostMedia } from "@/graphql/graphql";
 
-export type AdaptedPost = Pick<Post, "id" | "textContent" | "createdAt" | "_count" | "postMedia"> & {
-  author: Pick<User, "id" | "username" | "name" | "avatar">
-}
+export const adaptPostMedia = (postMedia?: (PostMedia | null)[]): Media[] =>
+  (postMedia ?? [])
+    .filter((pm): pm is PostMedia & { media: Media } => !!pm?.media)
+    .map(({ media }) => media);
