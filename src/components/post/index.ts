@@ -1,3 +1,3 @@
-export * from "./types";
-export * from "./adapter";
-export * from "./post-card";
+export * from "./card";
+export * from "./card-header";
+export * from "./card-footer.tsx";
