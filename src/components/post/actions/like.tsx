@@ -1,17 +1,18 @@
+import React from "react";
 import { Heart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { BaseActionProps } from "../types";
 
-interface LikeButtonProps {
+interface LikeButtonProps extends BaseActionProps {
   liked?: boolean;
-  count?: number;
-  onClick?: (e?: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export const LikeButton: React.FC<LikeButtonProps> = ({
   liked = false,
   count = 0,
   onClick,
+  className,
 }) => {
   return (
     <Button
@@ -20,7 +21,7 @@ export const LikeButton: React.FC<LikeButtonProps> = ({
       size="sm"
       className={`gap-1 text-sm transition-all ${
         liked ? "text-red-500" : "text-muted-foreground hover:text-red-500"
-      }`}
+      } ${className ?? ""}`}
     >
       <motion.div
         animate={{ scale: liked ? [1, 1.3, 1] : 1 }}
