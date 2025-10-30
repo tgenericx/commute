@@ -1,12 +1,12 @@
 import React, { useCallback } from "react";
 import MediaThumbnail from "./thumbnail";
-import { AdaptedMedia } from "./types";
 import { cn } from "@/lib/utils";
 import { useSheetManager } from "@/contexts/sheet-manager";
 import { AspectRatio } from "../ui/aspect-ratio";
+import { Media } from "@/graphql/graphql";
 
 interface MediaGridProps {
-  media: AdaptedMedia[];
+  media: Media[];
   className?: string;
   rounded?: boolean;
   bordered?: boolean;

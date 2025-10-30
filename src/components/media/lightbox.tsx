@@ -1,12 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronLeft, ChevronRight, X } from "lucide-react";
-import { ResourceType } from "@/graphql/graphql";
+import { Media, ResourceType } from "@/graphql/graphql";
 import { useRegisterSheet } from "@/hooks/use-register-sheet";
-import { AdaptedMedia } from "./types";
 
 interface MediaLightboxSheetProps {
-  mediaList: AdaptedMedia[];
+  mediaList: Media[];
   startIndex?: number;
   onClose: () => void;
 }
