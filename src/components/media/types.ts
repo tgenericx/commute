@@ -12,7 +12,7 @@ export type AdaptedMedia = Pick<
  * event to make using simple callbacks easier.
  */
 export interface MediaThumbnailProps {
-  media: AdaptedMedia;
+  media: Media;
   className?: string;
   rounded?: boolean;
   autoplay?: boolean;
