@@ -18,7 +18,6 @@ export const PostCard: React.FC<PostCardProps> = ({
   post,
   className,
   onReply,
-  onLike,
   onShare,
 }) => {
   return (
@@ -35,7 +34,6 @@ export const PostCard: React.FC<PostCardProps> = ({
       <PostCardFooter
         replyCount={post._count?.replies ?? 0}
         onReply={onReply}
-        onLike={onLike}
         onShare={onShare}
       />
     </Card>
