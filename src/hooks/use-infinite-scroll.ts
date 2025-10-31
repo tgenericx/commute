@@ -34,7 +34,7 @@ interface UseInfiniteFeedReturn {
   loading: boolean;
   error: any;
   hasNextPage: boolean;
-  observerRef: React.RefObject<HTMLDivElement>;
+  observerRef: React.RefObject<HTMLDivElement | null>;
   refetch: () => void;
   isFetchingMore: boolean;
 }
