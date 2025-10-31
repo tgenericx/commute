@@ -5,21 +5,27 @@ import { cn } from "@/lib/utils";
 import PostCardHeader from "./card-header";
 import PostBody from "./body";
 import { PostCardFooter } from "./card-footer";
+import { useSheetManager } from "@/contexts/sheet-manager";
+import { toast } from "sonner";
 
 interface PostCardProps {
   post: Post;
   className?: string;
-  onReply?: (event?: React.MouseEvent<HTMLButtonElement>) => void;
-  onLike?: (event?: React.MouseEvent<HTMLButtonElement>) => void;
-  onShare?: (event?: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-export const PostCard: React.FC<PostCardProps> = ({
-  post,
-  className,
-  onReply,
-  onShare,
-}) => {
+export const PostCard: React.FC<PostCardProps> = ({ post, className }) => {
+  const { openSheet } = useSheetManager();
+  const handleReply = () =>
+    openSheet("create-post", {
+      parentId: post.id,
+      mention: post.author.username,
+    });
+
+  const handleShare = () =>
+    toast.message("Comming soon", {
+      description: "This feature is coming soon, bear with us.",
+    });
+
   return (
     <Card
       className={cn(
@@ -28,16 +34,12 @@ export const PostCard: React.FC<PostCardProps> = ({
       )}
     >
       <PostCardHeader post={post} />
-
       <PostBody post={post} />
-
       <PostCardFooter
         replyCount={post._count?.replies ?? 0}
-        onReply={onReply}
-        onShare={onShare}
+        onReply={handleReply}
+        onShare={handleShare}
       />
     </Card>
   );
 };
-
-export default PostCard;
