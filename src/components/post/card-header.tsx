@@ -38,7 +38,7 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
     <CardHeader
       className={cn(
         "flex items-start justify-between p-4 pb-2 gap-3",
-        className
+        className,
       )}
     >
       <div className="flex items-start gap-3 flex-1 min-w-0">
@@ -64,20 +64,20 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
             >
               {displayName}
             </Button>
-            
+
             <span className="text-muted-foreground text-xs truncate flex-shrink-0">
               @{author?.username}
             </span>
-            
+
             {timeAgo && (
               <>
-                <span 
+                <span
                   className="text-muted-foreground text-xs flex-shrink-0"
                   aria-hidden="true"
                 >
                   ·
                 </span>
-                <time 
+                <time
                   dateTime={createdAt}
                   className="text-muted-foreground text-xs select-none flex-shrink-0"
                 >
