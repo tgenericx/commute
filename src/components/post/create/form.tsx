@@ -7,7 +7,7 @@ import {
   FieldLegend,
   FieldSet,
 } from "@/components/ui/field";
-import { AutoResizeTextarea } from "./text-area";
+import { Textarea } from "@/components/ui/textarea";
 import { MediaPicker } from "@/components/media/picker";
 import { usePostForm } from "@/hooks/use-post-form";
 
@@ -48,17 +48,18 @@ export function CreatePostForm({
             </div>
           )}
           <FieldDescription>
-            Share what’s happening — text, photos, or videos.
+            Share what's happening — text, photos, or videos.
           </FieldDescription>
 
           <FieldGroup>
             <Field>
               <FieldLabel htmlFor="post-text">Caption</FieldLabel>
-              <AutoResizeTextarea
+              <Textarea
                 id="post-text"
                 placeholder="What's happening?"
                 disabled={isCreating || isUploading}
                 {...form.register("textContent")}
+                className="min-h-[80px] resize-vertical"
               />
             </Field>
 
