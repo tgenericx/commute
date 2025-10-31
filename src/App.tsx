@@ -11,9 +11,9 @@ import MediaLightbox from "./components/media/lightbox";
 import { UserPreviewSheet } from "./components/user/preview";
 import UserProfilePage from "./pages/profile/[id]";
 import { SheetManagerProvider } from "./contexts/sheet-manager";
-import { CreatePostSheet } from "./components/post/create-form";
 import { CreateEventSheet } from "./components/event/create-form";
 import { CreateListingSheet } from "./components/listing/create-form";
+import { CreatePostSheet } from "./components/post/create/sheet";
 
 const AppRoutes = () => {
   const { isLoadingUser } = useAuth();
