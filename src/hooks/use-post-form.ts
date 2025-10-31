@@ -52,8 +52,9 @@ export function usePostForm({
       let uploadedMedia: MediaCreateInput[] = [];
 
       if (data.files?.length) {
-        toast.message("Uploading media...");
+        toast.loading("Uploading media...", { id: t });
         uploadedMedia = await uploadMedia(data.files);
+        toast.loading("Finalizing post...", { id: t });
       }
 
       const payload = {
