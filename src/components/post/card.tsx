@@ -44,13 +44,28 @@ export const PostCard: React.FC<PostCardProps> = ({
 
   const handleCardClick = React.useCallback((event: React.MouseEvent) => {
     const target = event.target as HTMLElement;
-    const isInteractive = 
-      target.closest('button') || 
-      target.closest('a') ||
+    const isInteractive =
+      target.closest("button") ||
+      target.closest("a") ||
       target.closest('[role="button"]');
-    
+
     if (!isInteractive && onPostClick) {
       onPostClick(post.id);
+    }
+  }, [onPostClick, post.id]);
+
+  const handleKeyDown = React.useCallback((event: React.KeyboardEvent) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      const target = event.target as HTMLElement;
+      const isInteractive =
+        target.closest("button") ||
+        target.closest("a") ||
+        target.closest('[role="button"]');
+    
+      if (!isInteractive && onPostClick) {
+        event.preventDefault();
+        onPostClick(post.id);
+      }
     }
   }, [onPostClick, post.id]);
 
