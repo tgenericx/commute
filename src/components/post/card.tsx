@@ -21,11 +21,11 @@ interface PostCardProps {
   corners?: "default" | "none" | "top" | "bottom";
 }
 
-export const PostCard: React.FC<PostCardProps> = ({ 
-  post, 
+export const PostCard: React.FC<PostCardProps> = ({
+  post,
   className,
   onPostClick,
-  corners = "default"
+  corners = "default",
 }) => {
   const { openSheet } = useSheetManager();
 
@@ -42,32 +42,38 @@ export const PostCard: React.FC<PostCardProps> = ({
     });
   }, []);
 
-  const handleCardClick = React.useCallback((event: React.MouseEvent) => {
-    const target = event.target as HTMLElement;
-    const isInteractive =
-      target.closest("button") ||
-      target.closest("a") ||
-      target.closest('[role="button"]');
-
-    if (!isInteractive && onPostClick) {
-      onPostClick(post.id);
-    }
-  }, [onPostClick, post.id]);
-
-  const handleKeyDown = React.useCallback((event: React.KeyboardEvent) => {
-    if (event.key === 'Enter' || event.key === ' ') {
+  const handleCardClick = React.useCallback(
+    (event: React.MouseEvent) => {
       const target = event.target as HTMLElement;
       const isInteractive =
         target.closest("button") ||
         target.closest("a") ||
         target.closest('[role="button"]');
-    
+
       if (!isInteractive && onPostClick) {
-        event.preventDefault();
         onPostClick(post.id);
       }
-    }
-  }, [onPostClick, post.id]);
+    },
+    [onPostClick, post.id],
+  );
+
+  const handleKeyDown = React.useCallback(
+    (event: React.KeyboardEvent) => {
+      if (event.key === "Enter" || event.key === " ") {
+        const target = event.target as HTMLElement;
+        const isInteractive =
+          target.closest("button") ||
+          target.closest("a") ||
+          target.closest('[role="button"]');
+
+        if (!isInteractive && onPostClick) {
+          event.preventDefault();
+          onPostClick(post.id);
+        }
+      }
+    },
+    [onPostClick, post.id],
+  );
 
   const cornersClass = React.useMemo(() => {
     switch (corners) {
@@ -93,12 +99,7 @@ export const PostCard: React.FC<PostCardProps> = ({
       onClick={onPostClick ? handleCardClick : undefined}
       role={onPostClick ? "button" : undefined}
       tabIndex={onPostClick ? 0 : undefined}
-      onKeyDown={onPostClick ? (e) => {
-        if (e.key === 'Enter' || e.key === ' ') {
-          e.preventDefault();
-          onPostClick(post.id);
-        }
-      } : undefined}
+      onKeyDown={onPostClick ? handleKeyDown : undefined}
     >
       <PostCardHeader post={post} />
       <PostBody post={post} />
