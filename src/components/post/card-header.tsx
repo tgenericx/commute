@@ -20,51 +20,69 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
   className,
 }) => {
   const { openSheet } = useSheetManager();
-  const { author } = post;
-  const timeAgo = post.createdAt
-    ? formatDistanceToNow(new Date(post.createdAt), { addSuffix: true })
-    : null;
+  const { author, createdAt } = post;
+
+  const timeAgo = React.useMemo(() => {
+    return createdAt
+      ? formatDistanceToNow(new Date(createdAt), { addSuffix: true })
+      : null;
+  }, [createdAt]);
+
+  const handleUserClick = React.useCallback(() => {
+    openSheet("user-preview", { id: author.id });
+  }, [openSheet, author.id]);
+
+  const displayName = author?.name ?? author?.username;
 
   return (
     <CardHeader
-      className={cn("flex items-start justify-between p-4 pb-2", className)}
+      className={cn(
+        "flex items-start justify-between p-4 pb-2 gap-3",
+        className
+      )}
     >
-      <div className="flex items-start gap-3">
+      <div className="flex items-start gap-3 flex-1 min-w-0">
         {/* Avatar */}
-        <Button
-          onClick={() => openSheet("user-preview", { id: author.id })}
-          aria-label={`Open profile for ${author.name ?? author.username}`}
-          className="focus:outline-none hover:opacity-90 transition-all duration-200"
-        >
-          <UserAvatar
-            user={{
-              id: author.id,
-              avatar: author.avatar,
-              name: author.name,
-              username: author.username,
-            }}
-            size="sm"
-          />
-        </Button>
+        <UserAvatar
+          user={{
+            id: author.id,
+            avatar: author.avatar,
+            name: author.name,
+            username: author.username,
+          }}
+          size="sm"
+          onClick={handleUserClick}
+        />
 
         {/* User info */}
-        <div className="flex flex-col min-w-0">
+        <div className="flex flex-col min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <Button
-              onClick={() => openSheet("user-preview", { id: author.id })}
-              className="font-semibold leading-none text-sm hover:underline truncate cursor-pointer focus:outline-none"
+              variant="ghost"
+              onClick={handleUserClick}
+              className="font-semibold leading-none text-sm hover:underline truncate p-0 h-auto focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
-              {author?.name ?? author?.username}
+              {displayName}
             </Button>
-            <span className="text-muted-foreground text-xs truncate">
+            
+            <span className="text-muted-foreground text-xs truncate flex-shrink-0">
               @{author?.username}
             </span>
+            
             {timeAgo && (
               <>
-                <span className="text-muted-foreground text-xs">·</span>
-                <span className="text-muted-foreground text-xs select-none">
-                  {timeAgo}
+                <span 
+                  className="text-muted-foreground text-xs flex-shrink-0"
+                  aria-hidden="true"
+                >
+                  ·
                 </span>
+                <time 
+                  dateTime={createdAt}
+                  className="text-muted-foreground text-xs select-none flex-shrink-0"
+                >
+                  {timeAgo}
+                </time>
               </>
             )}
           </div>
@@ -72,14 +90,17 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
       </div>
 
       {/* Options */}
-      <Button
-        variant="ghost"
-        size="icon"
-        className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-full transition"
-        onClick={onOptionsClick}
-      >
-        <EllipsisVertical className="h-4 w-4" />
-      </Button>
+      {onOptionsClick && (
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-full transition-colors flex-shrink-0"
+          onClick={onOptionsClick}
+          aria-label="Post options"
+        >
+          <EllipsisVertical className="h-4 w-4" />
+        </Button>
+      )}
     </CardHeader>
   );
 };
