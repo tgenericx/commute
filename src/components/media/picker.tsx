@@ -19,7 +19,7 @@ export const MediaPicker: React.FC<{
     return () => {
       previews.forEach((url) => URL.revokeObjectURL(url));
     };
-  }, []);
+  }, [previews]);
 
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFiles = Array.from(e.target.files || []);
