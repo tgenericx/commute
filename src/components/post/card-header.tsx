@@ -36,13 +36,11 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
 
   return (
     <CardHeader
-      className={cn(
-        "flex items-start justify-between p-4 pb-2 gap-3",
-        className,
-      )}
+      className={cn("flex items-start justify-between px-3 gap-2", className)}
     >
-      <div className="flex items-start gap-3 flex-1 min-w-0">
-        {/* Avatar */}
+      <div className="flex items-start gap-2 flex-1 min-w-0">
+        {" "}
+        {/* Reduced gap */}
         <UserAvatar
           user={{
             id: author.id,
@@ -52,11 +50,11 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
           }}
           size="sm"
           onClick={handleUserClick}
+          className="flex-shrink-0"
         />
-
-        {/* User info */}
         <div className="flex flex-col min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
+          <div className="flex items-center gap-1 flex-wrap">
+            {" "}
             <Button
               variant="ghost"
               onClick={handleUserClick}
@@ -64,11 +62,9 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
             >
               {displayName}
             </Button>
-
             <span className="text-muted-foreground text-xs truncate flex-shrink-0">
               @{author?.username}
             </span>
-
             {timeAgo && (
               <>
                 <span
@@ -80,6 +76,7 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
                 <time
                   dateTime={createdAt}
                   className="text-muted-foreground text-xs select-none flex-shrink-0"
+                  title={new Date(createdAt).toLocaleString()}
                 >
                   {timeAgo}
                 </time>
@@ -89,16 +86,15 @@ export const PostCardHeader: React.FC<PostCardHeaderProps> = ({
         </div>
       </div>
 
-      {/* Options */}
       {onOptionsClick && (
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-full transition-colors flex-shrink-0"
+          className="h-7 w-7 text-muted-foreground hover:text-primary hover:bg-muted/50 rounded-full transition-colors flex-shrink-0" // Slightly smaller
           onClick={onOptionsClick}
           aria-label="Post options"
         >
-          <EllipsisVertical className="h-4 w-4" />
+          <EllipsisVertical className="h-3.5 w-3.5" />
         </Button>
       )}
     </CardHeader>
