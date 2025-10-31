@@ -15,6 +15,12 @@ export const MediaPicker: React.FC<{
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
 
+  React.useEffect(() => {
+    return () => {
+      previews.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, []);
+
   const handleSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newFiles = Array.from(e.target.files || []);
     const combined = [...files, ...newFiles];
@@ -28,6 +34,7 @@ export const MediaPicker: React.FC<{
     setFiles(parsed.data);
     onChange?.(parsed.data);
 
+    previews.forEach((url) => URL.revokeObjectURL(url));
     const newPreviews = parsed.data.map((file) => URL.createObjectURL(file));
     setPreviews(newPreviews);
   };
@@ -35,6 +42,7 @@ export const MediaPicker: React.FC<{
   const removeFile = (index: number) => {
     const updatedFiles = files.filter((_, i) => i !== index);
     setFiles(updatedFiles);
+    URL.revokeObjectURL(previews[index]);
     setPreviews((prev) => prev.filter((_, i) => i !== index));
     onChange?.(updatedFiles);
   };
