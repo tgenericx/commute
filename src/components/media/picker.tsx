@@ -10,7 +10,8 @@ import { Media, ResourceType } from "@/graphql/graphql";
 export const MediaPicker: React.FC<{
   onChange?: (files: File[]) => void;
   className?: string;
-}> = ({ onChange, className }) => {
+  disabled: boolean;
+}> = ({ onChange, className, disabled }) => {
   const [files, setFiles] = useState<File[]>([]);
   const [previews, setPreviews] = useState<string[]>([]);
 
@@ -58,6 +59,7 @@ export const MediaPicker: React.FC<{
           type="file"
           accept="image/*,video/*"
           multiple
+          disabled={disabled}
           className="hidden"
           onChange={handleSelect}
         />
