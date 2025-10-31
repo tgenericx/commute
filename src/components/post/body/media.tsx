@@ -13,7 +13,7 @@ export const PostMedia: React.FC<PostMediaProps> = ({ post }) => {
   if (!media.length) return null;
 
   return (
-    <div className="mt-2">
+    <div>
       <MediaGrid media={media} rounded bordered className="overflow-hidden" />
     </div>
   );
