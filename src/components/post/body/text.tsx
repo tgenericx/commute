@@ -31,16 +31,18 @@ export const PostText: React.FC<PostTextProps> = ({
       )}
     >
       <Linkify options={{ className: "text-primary hover:underline" }}>
-        {text}
+        <>
+          {text}
+          {isLong && (
+            <button
+              onClick={() => setExpanded((v) => !v)}
+              className="ml-1 text-primary font-medium hover:underline"
+            >
+              {expanded ? " Show less" : " Show more"}
+            </button>
+          )}
+        </>
       </Linkify>
-      {isLong && (
-        <button
-          onClick={() => setExpanded((v) => !v)}
-          className="ml-1 text-primary font-medium hover:underline"
-        >
-          {expanded ? "Show less" : "Show more"}
-        </button>
-      )}
     </div>
   );
 };
