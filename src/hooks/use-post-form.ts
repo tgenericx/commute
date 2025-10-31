@@ -88,8 +88,6 @@ export function usePostForm({
         error instanceof Error ? error.message : "Failed to create post",
         { id: t },
       );
-    } finally {
-      toast.dismiss(t);
     }
   };
 
