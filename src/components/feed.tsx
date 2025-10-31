@@ -16,6 +16,15 @@ import { PostCard } from "./post";
 const useDebouncedCallback = (callback: () => void, delay: number) => {
   const timeoutRef = useRef<number | null>(null);
 
+  useEffect(() => {
+    // Clear the timeout when the component unmounts
+    return () => {
+      if (timeoutRef.current) {
+        window.clearTimeout(timeoutRef.current);
+      }
+    };
+  }, []);
+
   return useCallback(() => {
     if (timeoutRef.current) {
       window.clearTimeout(timeoutRef.current);
