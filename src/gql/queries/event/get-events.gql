@@ -1,0 +1,49 @@
+query GetEvents($filter: EventFilterInput, $pagination: PaginationInput) {
+  events(filter: $filter, pagination: $pagination) {
+    id
+    title
+    description
+    startTime
+    endTime
+    location
+    status
+    isPublic
+    categoryId
+    category {
+      id
+      name
+      description
+    }
+    createdBy {
+      id
+      name
+      username
+      avatar {
+        id
+        secureUrl
+      }
+    }
+    organizers {
+      id
+      role
+      addedAt
+      user {
+        id
+        name
+        username
+        avatar {
+          id
+          secureUrl
+        }
+      }
+    }
+    eventMedia {
+      id
+      secureUrl
+      format
+      resourceType
+    }
+    createdAt
+    updatedAt
+  }
+}

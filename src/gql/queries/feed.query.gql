@@ -1,7 +1,5 @@
 query FeedPosts($after: String, $limit: Int) {
-  feedPosts(
-    after: $after, limit: $limit
-  ) {
+  feedPosts(after: $after, limit: $limit) {
     items {
       id
       textContent
@@ -13,20 +11,17 @@ query FeedPosts($after: String, $limit: Int) {
         id
         username
         name
-        avatar
-      }
-      postMedia {
-        media {
-          id
+        avatar {
           secureUrl
           resourceType
-          format
-          duration
-          playbackUrl
-          width
-          height
-          eager
         }
+      }
+      postMedia {
+        id
+        secureUrl
+        resourceType
+        format
+        duration
       }
     }
     pageInfo {
@@ -34,67 +29,6 @@ query FeedPosts($after: String, $limit: Int) {
       endCursor
       hasNextPage
       # hasPreviousPage
-    }
-  }
-}
-
-query UpcomingEvents($take: Int) {
-  events(take: $take) {
-    id
-    title
-    description
-    startTime
-    endTime
-    location
-    media {
-      id
-      secureUrl
-      resourceType
-    }
-  }
-}
-
-query MarketplaceListings($take: Int) {
-  listings(take: $take) {
-    id
-    title
-    description
-    status
-    price
-    user {
-      id
-      username
-    }
-    listingMedia {
-      media {
-        id
-        secureUrl
-        resourceType
-      }
-    }
-  }
-}
-
-query MarketplaceInventories($take: Int) {
-  inventories(take: $take) {
-    id
-    title
-    description
-    stock
-    price
-    business {
-      id
-      user {
-        id
-        username
-      }
-    }
-    inventoryMedia {
-      media {
-        id
-        secureUrl
-        resourceType
-      }
     }
   }
 }

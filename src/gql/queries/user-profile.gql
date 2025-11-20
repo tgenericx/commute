@@ -3,7 +3,11 @@ query GetUserProfile($username: String, $id: String) {
     id
     name
     username
-    avatar
+    avatar {
+      id
+      secureUrl
+      resourceType
+    }
     bio
     _count {
       followers
@@ -19,22 +23,6 @@ query GetUserProfile($username: String, $id: String) {
         name
       }
       level
-    }
-    posts {
-      id
-      textContent
-      postMedia {
-        media {
-          id
-          secureUrl
-          playbackUrl
-          resourceType
-          format
-          width
-          height
-        }
-      }
-      createdAt
     }
   }
 }

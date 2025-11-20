@@ -2,22 +2,24 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>snf</title>
+    <title>Buddy - Connect, Share, Grow Together</title>
+    <meta
+      name="description"
+      content="Buddy brings your community to life with seamless event management, a vibrant marketplace, and engaging social features—all in one platform."
+    />
+    <meta name="author" content="Buddy" />
+
+    <meta property="og:title" content="Buddy - Connect, Share, Grow Together" />
+    <meta
+      property="og:description"
+      content="Buddy brings your community to life with seamless event management, a vibrant marketplace, and engaging social features—all in one platform."
+    />
+    <meta property="og:type" content="website" />
   </head>
+
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
-    
-    <!-- Eruda DevTools for mobile debugging -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>
-      // Enable via URL parameter: your-app.com?debug=true
-      const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('debug') || localStorage.getItem('eruda-enabled')) {
-        eruda.init();
-      }
-    </script>
   </body>
 </html>

@@ -1,0 +1,72 @@
+# ============= QUERIES =============
+
+query GetMyEvents($role: OrganizerRole) {
+  myEvents(role: $role) {
+    id
+    title
+    description
+    startTime
+    endTime
+    location
+    status
+    isPublic
+    category {
+      id
+      name
+    }
+    organizers {
+      id
+      role
+      user {
+        id
+        name
+        username
+      }
+    }
+    createdAt
+    updatedAt
+  }
+}
+
+# ============= MUTATIONS =============
+
+mutation UpdateEventStatus($id: String!, $status: EventStatus!) {
+  updateEventStatus(id: $id, status: $status) {
+    id
+    status
+    updatedAt
+  }
+}
+
+mutation DeleteEvent($id: String!) {
+  deleteEvent(id: $id)
+}
+
+mutation AddOrganizer(
+  $eventId: String!
+  $userId: String!
+  $role: OrganizerRole!
+) {
+  addOrganizer(eventId: $eventId, userId: $userId, role: $role) {
+    id
+    role
+    addedAt
+    user {
+      id
+      name
+      username
+      avatar {
+        id
+        secureUrl
+      }
+    }
+    event {
+      id
+      title
+    }
+  }
+}
+
+mutation RemoveOrganizer($eventId: String!, $userId: String!) {
+  removeOrganizer(eventId: $eventId, userId: $userId)
+}

@@ -1,0 +1,23 @@
+query Profile {
+  profile {
+    id
+    name
+    username
+    email
+    bio
+    avatar {
+      id
+      secureUrl
+    }
+    emailIsVerified
+    phone
+    phoneIsVerified
+    roles
+    createdAt
+    updatedAt
+    _count {
+      followers
+      following
+    }
+  }
+}
