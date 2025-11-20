@@ -6,7 +6,7 @@
   "scripts": {
     "codegen": "graphql-codegen --config codegen.ts",
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "build": "pnpm codegen && tsc -b && vite build",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"
