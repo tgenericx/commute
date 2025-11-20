@@ -1,0 +1,13 @@
+mutation UpdateEvent($id: String!, $input: EventUpdateInput!) {
+  updateEvent(id: $id, input: $input) {
+    id
+    title
+    description
+    startTime
+    endTime
+    location
+    status
+    isPublic
+    updatedAt
+  }
+}

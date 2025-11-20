@@ -1,0 +1,55 @@
+fragment EventBaseFields on Event {
+  id
+  title
+  description
+  startTime
+  endTime
+  location
+  status
+  isPublic
+  createdAt
+  updatedAt
+}
+
+fragment EventUserFields on User {
+  id
+  username
+  name
+  email
+}
+
+fragment EventCategoryFields on Category {
+  id
+  name
+  description
+}
+
+fragment EventOrganizerFields on EventOrganizer {
+  id
+  role
+  addedAt
+  user {
+    ...EventUserFields
+  }
+}
+
+fragment EventWithCreatedBy on Event {
+  ...EventBaseFields
+  createdBy {
+    ...EventUserFields
+  }
+}
+
+fragment EventWithCategory on Event {
+  ...EventWithCreatedBy
+  category {
+    ...EventCategoryFields
+  }
+}
+
+fragment EventWithOrganizers on Event {
+  ...EventWithCategory
+  organizers {
+    ...EventOrganizerFields
+  }
+}

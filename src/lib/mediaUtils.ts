@@ -1,4 +1,10 @@
-import { ResourceType } from "@/graphql/graphql";
+// Define ResourceType locally since generated types are not available
+export enum ResourceType {
+  IMAGE = 'IMAGE',
+  VIDEO = 'VIDEO',
+  RAW = 'RAW',
+  AUTO = 'AUTO'
+}
 
 export interface MediaCreateInput {
   publicId: string;

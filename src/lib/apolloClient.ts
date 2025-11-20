@@ -11,10 +11,10 @@ import {
 } from "@apollo/client/errors";
 import { toast } from "sonner";
 
-const API = import.meta.env.VITE_API_BASE_URL;
+const API = import.meta.env.VITE_API_BASE_URL || "https://proud-jobyna-campusuniverse-22c402c3.koyeb.app";
 
-if (!API) {
-  throw new Error("VITE_API_BASE_URL environment variable is not set");
+if (!import.meta.env.VITE_API_BASE_URL) {
+  console.warn("⚠️ VITE_API_BASE_URL not set, using default:", API);
 }
 
 export { API };

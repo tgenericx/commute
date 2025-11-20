@@ -1,6 +1,11 @@
-export * from "./adapter";
-export * from "./grid";
-export * from "./thumbnail";
-export * from "./lightbox";
-export * from "./types";
-export * from "./picker";
+export { MediaThumbnail } from "./MediaThumbnail";
+export { Lightbox } from "./Lightbox";
+export { PostMediaGrid } from "./PostMediaGrid";
+export type {
+  MediaItem,
+  MediaThumbnailProps,
+  LightboxProps,
+  MediaFilter,
+  GridSize,
+  PostMediaGridProps,
+} from "./types";

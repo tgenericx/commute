@@ -1,5 +1,20 @@
-mutation CreateEvent($data: EventCreateInput!) {
-  createEvent(data: $data) {
+mutation CreateEvent($input: EventCreateInput!) {
+  createEvent(input: $input) {
     id
+    title
+    description
+    startTime
+    endTime
+    location
+    status
+    isPublic
+    createdAt
+    updatedAt
+    createdBy {
+      id
+      username
+      name
+      email
+    }
   }
 }

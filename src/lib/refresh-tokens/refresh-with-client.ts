@@ -1,9 +1,26 @@
 import { apolloClient } from "../apolloClient";
-import {
-  RefreshTokensDocument,
-  type RefreshTokensMutation,
-  type RefreshTokensMutationVariables,
-} from "@/graphql/graphql";
+import { gql } from "@apollo/client";
+
+// Define types locally since generated types are not available
+const RefreshTokensDocument = gql`
+  mutation RefreshTokens($refreshToken: String!) {
+    refresh(refreshToken: $refreshToken) {
+      accessToken
+      refreshToken
+    }
+  }
+`;
+
+type RefreshTokensMutation = {
+  refresh: {
+    accessToken: string;
+    refreshToken: string;
+  };
+};
+
+type RefreshTokensMutationVariables = {
+  refreshToken: string;
+};
 
 /**
  * Refresh tokens using Apollo Client.

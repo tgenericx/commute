@@ -1,69 +1,62 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
-import Landing from "./pages/Landing";
+import { Routes, Route, Navigate } from "react-router-dom";
+import { SocialPage } from "./pages/home";
+import { EventsPage } from "./pages/EventsPage/EventsPage";
+import { MarketplacePage } from "./pages/MarketplacePage/MarketplacePage";
+import { DiscoverPage } from "./pages/DiscoverPage/DiscoverPage";
+import { ProfilePage } from "./pages/ProfilePage/ProfilePage";
 import NotFound from "./pages/NotFound";
-import { AuthProvider, useAuth } from "./contexts/auth-context";
-import { RequireAuth } from "./components/RequireAuth";
+import LandingPage from "./pages/landing";
+import SettingsPage from "./pages/SettingsPage/SettingsPage";
+import ThemeSettingsPage from "./pages/SettingsPage/ThemeSettingsPage";
+import { AccountPage } from "./pages/SettingsPage/AccountPage";
+import { PrivacyPage } from "./pages/SettingsPage/PrivacyPage";
+import { NotificationsPage } from "./pages/SettingsPage/NotificationsPage";
 import { Toaster } from "./components/ui/sonner";
-import { ThemeProvider } from "./contexts/theme-provider";
-import { AuthSheet } from "./components/auth";
-import MediaLightbox from "./components/media/lightbox";
-import { UserPreviewSheet } from "./components/user/preview";
-import UserProfilePage from "./pages/profile/[id]";
-import { SheetManagerProvider } from "./contexts/sheet-manager";
-import { CreateEventSheet } from "./components/event/create-form";
-import { CreateListingSheet } from "./components/listing/create-form";
-import { CreatePostSheet } from "./components/post/create/sheet";
+import SocialMediaApp from "./components/media/app";
+import SettingsLayout from "./components/settings/layout";
+import { TabsLayout } from "./components/tabs";
+import { ProtectedRoute } from "./components/auth/protected-route";
 
-const AppRoutes = () => {
-  const { isLoadingUser } = useAuth();
-
-  if (isLoadingUser) {
-    return (
-      <div className="flex h-screen w-full items-center justify-center">
-        <span className="text-muted-foreground">
-          Checking authentication...
-        </span>
-      </div>
-    );
-  }
-
+export default function App() {
   return (
-    <Routes>
-      <Route path="/landing" element={<Landing />} />
-      <Route path="/user/:username" element={<UserProfilePage />} />
-
-      <Route
-        path="/"
-        element={
-          <RequireAuth>
-            <Index />
-          </RequireAuth>
-        }
-      />
-
-      <Route path="*" element={<NotFound />} />
-    </Routes>
-  );
-};
-
-const App = () => (
-  <BrowserRouter>
-    <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
+    <>
       <Toaster />
-      <AuthProvider>
-        <SheetManagerProvider>
-          <AuthSheet />
-          <CreatePostSheet />
-          <CreateEventSheet />
-          <CreateListingSheet />
-          <MediaLightbox />
-          <UserPreviewSheet />
-          <AppRoutes />
-        </SheetManagerProvider>
-      </AuthProvider>
-    </ThemeProvider>
-  </BrowserRouter>
-);
+      <Routes>
+        <Route path="/landing" element={<LandingPage />} />
+        <Route path="/posts" element={<SocialMediaApp />} />
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <TabsLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Navigate to="/home" replace />} />
+          <Route path="home" element={<SocialPage />} />
+          <Route path="events" element={<EventsPage />} />
+          <Route path="marketplace" element={<MarketplacePage />} />
+          <Route path="discover" element={<DiscoverPage />} />
+          <Route path="profile" element={<ProfilePage />} />
+        </Route>
 
-export default App;
+        <Route
+          path="/settings"
+          element={
+            <ProtectedRoute>
+              <SettingsLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<SettingsPage />} />
+          <Route path="account" element={<AccountPage />} />
+          <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+          <Route path="appearance" element={<ThemeSettingsPage />} />
+        </Route>
+
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </>
+  );
+}
